@@ -681,12 +681,22 @@ async function renderNutri() {
       const plan = DB.planes.find(p => p.id === rp.plan_id);
       if (!plan) continue;
       const verdG = rp.verdura_g / 2;
+
+      // Marinados: escalar cantidad_g proporcionalmente a los gramos de proteína del plan
+      // cantidad_g está definida por 200g de proteína (unidad base)
+      const marinadasReceta = DB.marinadas.filter(m => m.receta_id === receta.id && m.usda_query && m.cantidad_g);
+      const ingredientesMarinado = await Promise.all(marinadasReceta.map(async m => {
+        const gEscalado = (rp.proteina_g / 200) * parseFloat(m.cantidad_g);
+        const data = await fetchUsda(m.usda_query);
+        return { nombre: m.ingrediente + ' (marinado)', g: gEscalado, emoji: '🧂', data };
+      }));
+
       const ingredientes = [
         { nombre: protCosto?.nombre || 'Proteína', g: rp.proteina_g, emoji: '🍗', data: protCosto ? ingMap[protCosto.nombre] : null },
         { nombre: 'Arroz cocido', g: rp.arroz_g, emoji: '🍚', data: ingMap[Object.keys(ingMap).find(k => k.toLowerCase().includes('arroz')) || ''] || null },
         { nombre: 'Calabacín', g: verdG, emoji: '🥦', data: ingMap[Object.keys(ingMap).find(k => k.toLowerCase().includes('calabac')) || ''] || null },
         { nombre: 'Pimiento morrón', g: verdG, emoji: '🫑', data: ingMap[Object.keys(ingMap).find(k => k.toLowerCase().includes('pimiento')) || ''] || null },
-
+        ...ingredientesMarinado,
       ];
       const calc = (data, g) => data ? { kcal: data.kcal*g/100, prot: data.prot*g/100, carb: data.carb*g/100, fat: data.fat*g/100 } : { kcal:0,prot:0,carb:0,fat:0 };
       const totales = ingredientes.reduce((acc, ing) => { const m = calc(ing.data, ing.g); return { kcal:acc.kcal+m.kcal, prot:acc.prot+m.prot, carb:acc.carb+m.carb, fat:acc.fat+m.fat }; }, {kcal:0,prot:0,carb:0,fat:0});
