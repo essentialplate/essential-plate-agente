@@ -475,10 +475,9 @@ function costoKit(recetaId, planId, nKits) {
   const verdG    = rp.verdura_g * nKits / 2;
   const cCal     = costoIngrediente('calabac', verdG);
   const cPip     = costoIngrediente('pimiento', verdG);
-  const cAceite  = costoIngrediente('aceite', rp.aceite_ml * nKits);
-  return { cProt, cArroz, cCal, cPip, cAceite, verdG, rp, receta,
+  return { cProt, cArroz, cCal, cPip, verdG, rp, receta,
            protNombre: protCosto?.nombre || 'Proteína',
-           cIng: cProt + cArroz + cCal + cPip + cAceite };
+           cIng: cProt + cArroz + cCal + cPip };
 }
 
 function calcKit() {
@@ -505,8 +504,7 @@ function calcKit() {
       <div class="ing-row"><span>🍗 ${k.protNombre} (${k.rp.proteina_g * kitCount}g)</span><span>$${k.cProt.toFixed(2)}</span></div>
       <div class="ing-row"><span>🍚 Arroz (${k.rp.arroz_g * kitCount}g)</span><span>$${k.cArroz.toFixed(2)}</span></div>
       <div class="ing-row"><span>🥦 Calabacín (${k.verdG}g)</span><span>$${k.cCal.toFixed(2)}</span></div>
-      <div class="ing-row"><span>🫑 Pimiento morrón (${k.verdG}g)</span><span>$${k.cPip.toFixed(2)}</span></div>
-      <div class="ing-row"><span>🫒 Aceite de oliva (${k.rp.aceite_ml * kitCount}ml)</span><span>$${k.cAceite.toFixed(2)}</span></div>`;
+      <div class="ing-row"><span>🫑 Pimiento morrón (${k.verdG}g)</span><span>$${k.cPip.toFixed(2)}</span></div>`;
   } else {
     const polloId = DB.recetas.find(r => r.proteina_tipo === 'pollo')?.id;
     const resId   = DB.recetas.find(r => r.proteina_tipo === 'res')?.id;
@@ -600,7 +598,7 @@ function renderRecetas() {
         <td style="padding:7px 6px;font-size:13px;text-align:center;">${rp.proteina_g}g</td>
         <td style="padding:7px 6px;font-size:13px;text-align:center;">${rp.arroz_g}g</td>
         <td style="padding:7px 6px;font-size:13px;text-align:center;">${rp.verdura_g}g</td>
-        <td style="padding:7px 0 7px 6px;font-size:13px;text-align:center;">${rp.aceite_ml}ml</td>
+
         <td style="padding:7px 0 7px 6px;font-size:13px;text-align:center;font-weight:500;color:#7AB648;">$${rp.precio_kit}</td>
       </tr>`;
     }).join('');
@@ -626,7 +624,7 @@ function renderRecetas() {
             <th style="padding:0 6px 8px;font-size:11px;color:#aaa;font-weight:500;text-align:center;text-transform:uppercase;letter-spacing:.5px;">Proteína</th>
             <th style="padding:0 6px 8px;font-size:11px;color:#aaa;font-weight:500;text-align:center;text-transform:uppercase;letter-spacing:.5px;">Arroz</th>
             <th style="padding:0 6px 8px;font-size:11px;color:#aaa;font-weight:500;text-align:center;text-transform:uppercase;letter-spacing:.5px;">Verduras</th>
-            <th style="padding:0 0 8px 6px;font-size:11px;color:#aaa;font-weight:500;text-align:center;text-transform:uppercase;letter-spacing:.5px;">Aceite</th>
+
             <th style="padding:0 0 8px 6px;font-size:11px;color:#aaa;font-weight:500;text-align:center;text-transform:uppercase;letter-spacing:.5px;">Precio</th>
           </tr></thead>
           <tbody style="border-bottom:1px solid #f0f0ee;">${planesRows}</tbody>
@@ -688,7 +686,7 @@ async function renderNutri() {
         { nombre: 'Arroz cocido', g: rp.arroz_g, emoji: '🍚', data: ingMap[Object.keys(ingMap).find(k => k.toLowerCase().includes('arroz')) || ''] || null },
         { nombre: 'Calabacín', g: verdG, emoji: '🥦', data: ingMap[Object.keys(ingMap).find(k => k.toLowerCase().includes('calabac')) || ''] || null },
         { nombre: 'Pimiento morrón', g: verdG, emoji: '🫑', data: ingMap[Object.keys(ingMap).find(k => k.toLowerCase().includes('pimiento')) || ''] || null },
-        { nombre: 'Aceite de oliva', g: rp.aceite_ml, emoji: '🫒', data: ingMap[Object.keys(ingMap).find(k => k.toLowerCase().includes('aceite')) || ''] || null },
+
       ];
       const calc = (data, g) => data ? { kcal: data.kcal*g/100, prot: data.prot*g/100, carb: data.carb*g/100, fat: data.fat*g/100 } : { kcal:0,prot:0,carb:0,fat:0 };
       const totales = ingredientes.reduce((acc, ing) => { const m = calc(ing.data, ing.g); return { kcal:acc.kcal+m.kcal, prot:acc.prot+m.prot, carb:acc.carb+m.carb, fat:acc.fat+m.fat }; }, {kcal:0,prot:0,carb:0,fat:0});
@@ -1029,7 +1027,7 @@ function renderCompras() {
     if (totales['Arroz cocido']) totales['Arroz cocido'].kg += (rp.arroz_g / 1000) * kitsN;
     if (totales['Calabacin'])    totales['Calabacin'].kg    += (rp.verdura_g / 2000) * kitsN;
     if (totales['Pimiento morron']) totales['Pimiento morron'].kg += (rp.verdura_g / 2000) * kitsN;
-    if (totales['Aceite de oliva']) totales['Aceite de oliva'].kg += (rp.aceite_ml / 1000) * kitsN;
+
   });
 
   let costoTotal = 0;
