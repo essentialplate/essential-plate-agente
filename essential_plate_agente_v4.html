@@ -156,9 +156,9 @@
     <div class="card">
       <div class="card-title">Configura el kit y ve costos + margen al instante</div>
       <label>Receta</label>
-      <select id="kit-receta" onchange="calcKit()"></select>
+      <select id="kit-receta" onchange="updatePrecioFromDB()"></select>
       <label>Plan nutricional</label>
-      <select id="kit-plan" onchange="calcKit()"></select>
+      <select id="kit-plan" onchange="updatePrecioFromDB()"></select>
       <label>Tipo de paquete</label>
       <select id="kit-tipo" onchange="updatePrecioFromDB()">
         <option value="individual">Individual (1 kit)</option>
@@ -167,8 +167,8 @@
         <option value="mix_3">Mix 3 (2 pollo + 1 res)</option>
         <option value="mix_5">Mix 5 (3 pollo + 2 res)</option>
       </select>
-      <label>Precio de venta ($MXN) <span id="precio-fuente" style="color:#7AB648;font-size:11px;"></span></label>
-      <input type="number" id="kit-precio" value="159" oninput="calcKit()" style="margin-bottom:0;" />
+      <label>Precio de venta ($MXN)</label>
+      <div id="kit-precio-display" style="padding:8px 10px;border-radius:8px;border:1px solid #e8e8e6;background:#f5f5f3;font-size:16px;font-weight:500;color:#1a1a1a;margin-bottom:0;">—</div><input type="hidden" id="kit-precio" value="159" />
     </div>
     <div class="row3" id="kit-metrics"><div class="loading" style="grid-column:1/-1;">Cargando datos de Supabase...</div></div>
     <div id="kit-detalle" class="card" style="display:none;"></div>
@@ -432,24 +432,29 @@ function updatePrecioFromDB() {
   const recetaId = parseInt(document.getElementById('kit-receta').value);
   const planId   = parseInt(document.getElementById('kit-plan').value);
   const tipo     = document.getElementById('kit-tipo').value;
-  const fuenteEl = document.getElementById('precio-fuente');
+  const displayEl = document.getElementById('kit-precio-display');
 
   let precio = null;
 
   if (tipo === 'mix_3' || tipo === 'mix_5') {
     const mix = DB.paquetes_mix.find(m => m.plan_id === planId && m.tipo_mix === tipo);
-    if (mix) { precio = mix.precio_venta; fuenteEl.textContent = '— precio BD'; }
+    if (mix) precio = mix.precio_venta;
   } else {
     const rp = DB.receta_plan.find(r => r.receta_id === recetaId && r.plan_id === planId);
-    if (rp && tipo === 'individual') { precio = rp.precio_kit; fuenteEl.textContent = '— precio BD'; }
-    else {
+    if (rp && tipo === 'individual') {
+      precio = rp.precio_kit;
+    } else {
       const paq = DB.paquetes.find(p => p.receta_plan_id === rp?.id && p.tipo_paquete === tipo);
-      if (paq) { precio = paq.precio_venta; fuenteEl.textContent = '— precio BD'; }
+      if (paq) precio = paq.precio_venta;
     }
   }
 
-  if (precio !== null) document.getElementById('kit-precio').value = precio;
-  else fuenteEl.textContent = '';
+  if (precio !== null) {
+    document.getElementById('kit-precio').value = precio;
+    if (displayEl) displayEl.textContent = '$' + parseFloat(precio).toFixed(0) + ' MXN';
+  } else {
+    if (displayEl) displayEl.textContent = '— sin precio en BD';
+  }
   calcKit();
 }
 
