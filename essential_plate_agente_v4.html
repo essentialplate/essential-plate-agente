@@ -539,12 +539,12 @@ function calcKit() {
     desglose = `
       <div style="font-size:12px;color:#7AB648;font-weight:500;margin:4px 0 2px;">🍗 Pollo Lemon Pepper ×${nPollo}</div>
       <div class="ing-row"><span>Proteína (${kP.rp?.proteina_g * nPollo}g)</span><span>$${kP.cProt.toFixed(2)}</span></div>
-      <div class="ing-row"><span>Arroz (${kP.rp?.arroz_g * nPollo}g)</span><span>$${kP.cArroz.toFixed(2)}</span></div>
-      <div class="ing-row"><span>Verduras (${kP.verdG * 2}g)</span><span>$${(kP.cCal + kP.cPip).toFixed(2)}</span></div>
+      <div class="ing-row"><span>${kP.esTeriyaki ? '🌾' : '🍚'} ${kP.carbNombre} (${kP.rp?.arroz_g * nPollo}g)</span><span>$${kP.cCarb.toFixed(2)}</span></div>
+      <div class="ing-row"><span>${kP.esTeriyaki ? '🫘' : (kP.esRes ? '🫑' : '🥦')} ${kP.vNombre1} (${kP.verdG}g)</span><span>$${kP.cVerd1.toFixed(2)}</span></div>
       <div style="font-size:12px;color:#E07000;font-weight:500;margin:8px 0 2px;">🥩 Fajitas de Res ×${nRes}</div>
       <div class="ing-row"><span>Proteína (${kR.rp?.proteina_g * nRes}g)</span><span>$${kR.cProt.toFixed(2)}</span></div>
-      <div class="ing-row"><span>Arroz (${kR.rp?.arroz_g * nRes}g)</span><span>$${kR.cArroz.toFixed(2)}</span></div>
-      <div class="ing-row"><span>Verduras (${kR.verdG * 2}g)</span><span>$${(kR.cCal + kR.cPip).toFixed(2)}</span></div>`;
+      <div class="ing-row"><span>${kR.esTeriyaki ? '🌾' : '🍚'} ${kR.carbNombre} (${kR.rp?.arroz_g * nRes}g)</span><span>$${kR.cCarb.toFixed(2)}</span></div>
+      <div class="ing-row"><span>${kR.esTeriyaki ? '🫘' : (kR.esRes ? '🫑' : '🥦')} ${kR.vNombre1} (${kR.verdG}g)</span><span>$${kR.cVerd1.toFixed(2)}</span></div>`;
   }
 
   const cTotal   = cIngTotal + parseFloat(emp.total);
@@ -606,11 +606,15 @@ function renderCostos() {
 
 // ---- RECETAS ----
 function renderRecetas() {
-  const VERDURAS = [
-    { nombre: 'Calabacín', g: '65g (mitad de porción verdura)', emoji: '🥦' },
-    { nombre: 'Pimiento morrón', g: '65g (mitad de porción verdura)', emoji: '🫑' }
-  ];
   document.getElementById('recetas-lista').innerHTML = DB.recetas.map(r => {
+    const nom = r.nombre.toLowerCase();
+    const esTeriyaki = nom.includes('teriyaki');
+    const carbLabel  = esTeriyaki ? 'Quinoa' : 'Arroz';
+    const verdura    = nom.includes('lemon')    ? { nombre: 'Calabacín',       emoji: '🥦' }
+                     : nom.includes('fajita')   ? { nombre: 'Pimiento morrón', emoji: '🫑' }
+                     : nom.includes('teriyaki') ? { nombre: 'Ejotes',          emoji: '🥦' }
+                     :                           { nombre: 'Calabacín',        emoji: '🥦' };
+
     const marinadas = DB.marinadas.filter(m => m.receta_id === r.id);
     const planesRows = DB.receta_plan.filter(rp => rp.receta_id === r.id).map(rp => {
       const p = DB.planes.find(pl => pl.id === rp.plan_id);
@@ -630,8 +634,9 @@ function renderRecetas() {
         <td style="padding:6px 6px;font-size:13px;text-align:center;color:#666;">${m.por_200g}</td>
         <td style="padding:6px 0 6px 6px;font-size:13px;color:#888;">${m.notas || '—'}</td>
       </tr>`).join('');
-    const verdurasRows = VERDURAS.map(v =>
-      `<div class="ing-row"><span>${v.emoji} ${v.nombre}</span><span style="font-size:13px;color:#888;">${v.g}</span></div>`).join('');
+    const verdurasRows =
+      `<div class="ing-row"><span>${verdura.emoji} ${verdura.nombre}</span><span style="font-size:13px;color:#888;">130g</span></div>` +
+      `<div class="ing-row"><span>🍚 ${carbLabel}</span><span style="font-size:13px;color:#888;">según plan</span></div>`;
     return `<div class="card" style="margin-bottom:16px;">
       <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:4px;">
         <div style="font-weight:500;font-size:16px;">${r.nombre}</div>
@@ -644,15 +649,15 @@ function renderRecetas() {
           <thead><tr style="border-bottom:1px solid #e8e8e6;">
             <th style="padding:0 10px 8px 0;font-size:11px;color:#aaa;font-weight:500;text-align:left;text-transform:uppercase;letter-spacing:.5px;">Plan</th>
             <th style="padding:0 6px 8px;font-size:11px;color:#aaa;font-weight:500;text-align:center;text-transform:uppercase;letter-spacing:.5px;">Proteína</th>
-            <th style="padding:0 6px 8px;font-size:11px;color:#aaa;font-weight:500;text-align:center;text-transform:uppercase;letter-spacing:.5px;">Arroz</th>
-            <th style="padding:0 6px 8px;font-size:11px;color:#aaa;font-weight:500;text-align:center;text-transform:uppercase;letter-spacing:.5px;">Verduras</th>
+            <th style="padding:0 6px 8px;font-size:11px;color:#aaa;font-weight:500;text-align:center;text-transform:uppercase;letter-spacing:.5px;">${carbLabel}</th>
+            <th style="padding:0 6px 8px;font-size:11px;color:#aaa;font-weight:500;text-align:center;text-transform:uppercase;letter-spacing:.5px;">Verdura</th>
 
             <th style="padding:0 0 8px 6px;font-size:11px;color:#aaa;font-weight:500;text-align:center;text-transform:uppercase;letter-spacing:.5px;">Precio</th>
           </tr></thead>
           <tbody style="border-bottom:1px solid #f0f0ee;">${planesRows}</tbody>
         </table>
       </div>
-      <div style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Verduras incluidas</div>
+      <div style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Ingredientes incluidos</div>
       <div style="margin-bottom:16px;">${verdurasRows}</div>
       <div style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Marinada (por 200g proteína)</div>
       ${marinadas.length ? `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;">
@@ -702,7 +707,29 @@ async function renderNutri() {
     for (const rp of planes) {
       const plan = DB.planes.find(p => p.id === rp.plan_id);
       if (!plan) continue;
-      const verdG = rp.verdura_g / 2;
+      const verdG = rp.verdura_g;
+      const recNom = receta.nombre.toLowerCase();
+      const esTeriyakiN = recNom.includes('teriyaki');
+
+      // Carbohidrato según receta
+      const carbKeyN  = Object.keys(ingMap).find(k => k.toLowerCase().includes(esTeriyakiN ? 'quinoa' : 'arroz')) || '';
+      const carbNomN  = esTeriyakiN ? 'Quinoa' : 'Arroz cocido';
+
+      // Verdura según receta (130g, un solo ingrediente)
+      let verdKeyN, verdNomN, verdEmojiN;
+      if (recNom.includes('lemon')) {
+        verdKeyN = Object.keys(ingMap).find(k => k.toLowerCase().includes('calabac')) || '';
+        verdNomN = 'Calabacín'; verdEmojiN = '🥦';
+      } else if (recNom.includes('fajita')) {
+        verdKeyN = Object.keys(ingMap).find(k => k.toLowerCase().includes('pimiento')) || '';
+        verdNomN = 'Pimiento morrón'; verdEmojiN = '🫑';
+      } else if (recNom.includes('teriyaki')) {
+        verdKeyN = Object.keys(ingMap).find(k => k.toLowerCase().includes('ejote')) || '';
+        verdNomN = 'Ejotes'; verdEmojiN = '🥦';
+      } else {
+        verdKeyN = Object.keys(ingMap).find(k => k.toLowerCase().includes('calabac')) || '';
+        verdNomN = 'Calabacín'; verdEmojiN = '🥦';
+      }
 
       // Marinados: escalar cantidad_g proporcionalmente a los gramos de proteína del plan
       // cantidad_g está definida por 200g de proteína (unidad base)
@@ -715,9 +742,8 @@ async function renderNutri() {
 
       const ingredientes = [
         { nombre: protCosto?.nombre || 'Proteína', g: rp.proteina_g, emoji: '🍗', data: protCosto ? ingMap[protCosto.nombre] : null },
-        { nombre: 'Arroz cocido', g: rp.arroz_g, emoji: '🍚', data: ingMap[Object.keys(ingMap).find(k => k.toLowerCase().includes('arroz')) || ''] || null },
-        { nombre: 'Calabacín', g: verdG, emoji: '🥦', data: ingMap[Object.keys(ingMap).find(k => k.toLowerCase().includes('calabac')) || ''] || null },
-        { nombre: 'Pimiento morrón', g: verdG, emoji: '🫑', data: ingMap[Object.keys(ingMap).find(k => k.toLowerCase().includes('pimiento')) || ''] || null },
+        { nombre: carbNomN, g: rp.arroz_g, emoji: esTeriyakiN ? '🌾' : '🍚', data: ingMap[carbKeyN] || null },
+        { nombre: verdNomN, g: verdG, emoji: verdEmojiN, data: ingMap[verdKeyN] || null },
         ...ingredientesMarinado,
       ];
       const calc = (data, g) => data ? { kcal: data.kcal*g/100, prot: data.prot*g/100, carb: data.carb*g/100, fat: data.fat*g/100 } : { kcal:0,prot:0,carb:0,fat:0 };
@@ -726,7 +752,7 @@ async function renderNutri() {
       const desgloseRows = ingredientes.map(ing => { const m = calc(ing.data, ing.g); return `<div class="nutri-ing-row"><span>${ing.emoji} ${ing.nombre} (${ing.g}g)</span><span>${m.kcal.toFixed(0)} kcal · ${m.prot.toFixed(1)}g P · ${m.carb.toFixed(1)}g C · ${m.fat.toFixed(1)}g G</span></div>`; }).join('') + `<div class="nutri-ing-row nutri-ing-total"><span>Total kit</span><span>${totales.kcal.toFixed(0)} kcal · ${totales.prot.toFixed(1)}g P · ${totales.carb.toFixed(1)}g C · ${totales.fat.toFixed(1)}g G</span></div>`;
       html += `<div class="nutri-plan-block card">
         <div class="nutri-plan-title">
-          <span>${plan.icono} ${plan.nombre} <span style="font-weight:400;color:#888;font-size:13px;">— ${rp.proteina_g}g proteína · ${rp.arroz_g}g arroz</span></span>
+          <span>${plan.icono} ${plan.nombre} <span style="font-weight:400;color:#888;font-size:13px;">— ${rp.proteina_g}g proteína · ${rp.arroz_g}g ${carbNomN.toLowerCase()}</span></span>
           <button class="btn-sm" onclick="toggleDesglose('${blockId}', this)">Ver ingredientes</button>
         </div>
         <div class="nutri-macros">
@@ -1055,10 +1081,29 @@ function renderCompras() {
     const kitsN = d.tipo_paquete === 'individual' ? n : d.tipo_paquete.includes('3') ? n*3 : n*5;
 
     const protKey = receta.proteina_tipo === 'pollo' ? 'Pollo' : 'Res pulpa blanca';
-    if (totales[protKey])   totales[protKey].kg   += (rp.proteina_g / 1000) * kitsN;
-    if (totales['Arroz cocido']) totales['Arroz cocido'].kg += (rp.arroz_g / 1000) * kitsN;
-    if (totales['Calabacin'])    totales['Calabacin'].kg    += (rp.verdura_g / 2000) * kitsN;
-    if (totales['Pimiento morron']) totales['Pimiento morron'].kg += (rp.verdura_g / 2000) * kitsN;
+    if (totales[protKey]) totales[protKey].kg += (rp.proteina_g / 1000) * kitsN;
+
+    const recNomC = receta.nombre.toLowerCase();
+    // Carbohidrato: Teriyaki → Quinoa, resto → Arroz cocido
+    if (recNomC.includes('teriyaki')) {
+      const quinoaKey = Object.keys(totales).find(k => k.toLowerCase().includes('quinoa'));
+      if (quinoaKey) totales[quinoaKey].kg += (rp.arroz_g / 1000) * kitsN;
+    } else {
+      const arrozKey = Object.keys(totales).find(k => k.toLowerCase().includes('arroz'));
+      if (arrozKey) totales[arrozKey].kg += (rp.arroz_g / 1000) * kitsN;
+    }
+
+    // Verdura: 130g del ingrediente específico por receta
+    if (recNomC.includes('lemon')) {
+      const calKey = Object.keys(totales).find(k => k.toLowerCase().includes('calabac'));
+      if (calKey) totales[calKey].kg += (rp.verdura_g / 1000) * kitsN;
+    } else if (recNomC.includes('fajita')) {
+      const pipKey = Object.keys(totales).find(k => k.toLowerCase().includes('pimiento'));
+      if (pipKey) totales[pipKey].kg += (rp.verdura_g / 1000) * kitsN;
+    } else if (recNomC.includes('teriyaki')) {
+      const ejoKey = Object.keys(totales).find(k => k.toLowerCase().includes('ejote'));
+      if (ejoKey) totales[ejoKey].kg += (rp.verdura_g / 1000) * kitsN;
+    }
 
   });
 
