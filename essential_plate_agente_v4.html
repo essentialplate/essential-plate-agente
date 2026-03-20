@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Essential Plate</title>
+<title>Essential Plate — Agente</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f5f3; color: #1a1a1a; min-height: 100vh; }
@@ -471,13 +471,35 @@ function costoKit(recetaId, planId, nKits) {
   const protCosto = DB.costos.find(c => c.nombre.toLowerCase().includes(receta.proteina_tipo));
   const merma    = protCosto?.factor_merma || 1.12;
   const cProt    = protCosto ? (rp.proteina_g / 1000) * protCosto.precio_kg_mayorista * merma * nKits : 0;
-  const cArroz   = costoIngrediente('arroz', rp.arroz_g * nKits);
-  const verdG    = rp.verdura_g * nKits / 2;
-  const cCal     = costoIngrediente('calabac', verdG);
-  const cPip     = costoIngrediente('pimiento', verdG);
-  return { cProt, cArroz, cCal, cPip, verdG, rp, receta,
+
+  // Carb: quinoa para Teriyaki, arroz para el resto
+  const esTeriyaki = receta.nombre?.toLowerCase().includes('teriyaki');
+  const carbKey    = esTeriyaki ? 'quinoa' : 'arroz';
+  const cCarb      = costoIngrediente(carbKey, rp.arroz_g * nKits);
+
+  // Verdura: según receta
+  const esRes      = receta.proteina_tipo === 'res';
+  let cVerd1 = 0, cVerd2 = 0, vNombre1 = '', vNombre2 = '', verdG = rp.verdura_g * nKits;
+  if (esTeriyaki) {
+    cVerd1  = costoIngrediente('ejote', verdG);
+    vNombre1 = 'Ejotes'; vNombre2 = '';
+  } else if (esRes) {
+    cVerd1  = costoIngrediente('pimiento', verdG);
+    vNombre1 = 'Pimiento morrón'; vNombre2 = '';
+  } else {
+    // Pollo LP: mitad calabacín + mitad pimiento
+    verdG   = rp.verdura_g * nKits / 2;
+    cVerd1  = costoIngrediente('calabac', verdG);
+    cVerd2  = costoIngrediente('pimiento', verdG);
+    vNombre1 = 'Calabacín'; vNombre2 = 'Pimiento morrón';
+  }
+
+  return { cProt, cCarb, cVerd1, cVerd2, verdG,
+           vNombre1, vNombre2, esTeriyaki, esRes,
+           carbNombre: esTeriyaki ? 'Quinoa' : 'Arroz',
+           rp, receta,
            protNombre: protCosto?.nombre || 'Proteína',
-           cIng: cProt + cArroz + cCal + cPip };
+           cIng: cProt + cCarb + cVerd1 + cVerd2 };
 }
 
 function calcKit() {
@@ -500,11 +522,13 @@ function calcKit() {
     const k = costoKit(recetaId, planId, kitCount);
     if (!k.rp) return;
     cIngTotal = k.cIng;
+    const carbEmoji = k.esTeriyaki ? '🌾' : '🍚';
+    const verdEmoji1 = k.esTeriyaki ? '🫘' : (k.esRes ? '🫑' : '🥦');
     desglose = `
       <div class="ing-row"><span>🍗 ${k.protNombre} (${k.rp.proteina_g * kitCount}g)</span><span>$${k.cProt.toFixed(2)}</span></div>
-      <div class="ing-row"><span>🍚 Arroz (${k.rp.arroz_g * kitCount}g)</span><span>$${k.cArroz.toFixed(2)}</span></div>
-      <div class="ing-row"><span>🥦 Calabacín (${k.verdG}g)</span><span>$${k.cCal.toFixed(2)}</span></div>
-      <div class="ing-row"><span>🫑 Pimiento morrón (${k.verdG}g)</span><span>$${k.cPip.toFixed(2)}</span></div>`;
+      <div class="ing-row"><span>${carbEmoji} ${k.carbNombre} (${k.rp.arroz_g * kitCount}g)</span><span>$${k.cCarb.toFixed(2)}</span></div>
+      <div class="ing-row"><span>${verdEmoji1} ${k.vNombre1} (${k.verdG}g)</span><span>$${k.cVerd1.toFixed(2)}</span></div>
+      ${k.vNombre2 ? `<div class="ing-row"><span>🫑 ${k.vNombre2} (${k.verdG}g)</span><span>$${k.cVerd2.toFixed(2)}</span></div>` : ''}`;
   } else {
     const polloId = DB.recetas.find(r => r.proteina_tipo === 'pollo')?.id;
     const resId   = DB.recetas.find(r => r.proteina_tipo === 'res')?.id;
