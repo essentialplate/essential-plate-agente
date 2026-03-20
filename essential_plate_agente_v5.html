@@ -475,11 +475,11 @@ function calcKit() {
   const utilidad = precio - cTotal;
   const precioSug = Math.ceil(cTotal / (1 - 0.51) / 10) * 10 - 1;
   const mClass = margen >= 51 ? 'badge-green' : margen >= 40 ? 'badge-amber' : 'badge-red';
-  const mLabel = margen >= 51 ? 'Meta 51%' : margen >= 40 ? 'Cerca' : 'Bajo';
+  const mLabel = margen >= 51 ? 'Meta 55%' : margen >= 40 ? 'Cerca' : 'Bajo';
 
   document.getElementById('kit-metrics').innerHTML = `
     <div class="metric"><div class="metric-label">Costo total</div><div class="metric-val">$${cTotal.toFixed(2)}</div><div class="metric-sub">${kitCount} kits · ing + empaque</div></div>
-    <div class="metric"><div class="metric-label">Precio venta</div><div class="metric-val">$${precio.toFixed(2)}</div><div class="metric-sub">Sugerido 51%: $${precioSug.toFixed(0)}</div></div>
+    <div class="metric"><div class="metric-label">Precio venta</div><div class="metric-val">$${precio.toFixed(2)}</div><div class="metric-sub">Sugerido 55%: $${precioSug.toFixed(0)}</div></div>
     <div class="metric"><div class="metric-label">Margen</div><div class="metric-val">${margen.toFixed(1)}%</div><div class="metric-sub"><span class="badge ${mClass}">${mLabel}</span></div></div>`;
 
   const det = document.getElementById('kit-detalle');
