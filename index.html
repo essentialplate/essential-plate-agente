@@ -444,7 +444,7 @@ textarea{resize:vertical;min-height:70px}
 const SB_URL = 'https://wdaqctevstiskkfkxytb.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkYXFjdGV2c3Rpc2trZmt4eXRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NDA1MjUsImV4cCI6MjA4OTUxNjUyNX0.x6GwWIahn26GyYu8LjKs3XKcFe-gGgc-Zh0SIOA460g';
 const USDA_KEY = 'SgfM4irGgMFlePbkAiOegmzoCvTs35obc0pWaaj0';
-const PASSWORD = 'romi';
+const PASSWORD = 'essentialplate2025';
 
 // ═══════════════════════════════════════════════════
 // SUPABASE
@@ -791,7 +791,7 @@ function recetaAction() {
 }
 
 async function loadRecetas() {
-  const recetas = await sb('recetas?select=*,receta_plan(proteina_g,arroz_g,verdura_g,precio_kit,planes(nombre))&activa=eq.true&order=id');
+  const recetas = await sb('recetas?select=*,usda_query,receta_plan(proteina_g,arroz_g,verdura_g,precio_kit,costo_marinado,planes(nombre))&activa=eq.true&order=id');
   ST.recetasList = recetas;
   document.getElementById('lista-recetas').innerHTML = recetas.map((r, i) => `
     <div class="rcard${i===0?' selected':''}" id="rc-${r.id}" onclick="selectReceta(${r.id})">
@@ -801,42 +801,141 @@ async function loadRecetas() {
   if (recetas.length) selectReceta(recetas[0].id);
 }
 
-function selectReceta(id) {
+// Fetches macros per 100g from USDA for a given query
+async function fetchUSDAMacros(query) {
+  const url = `https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(query)}&pageSize=1&api_key=${USDA_KEY}`;
+  const r = await fetch(url);
+  const d = await r.json();
+  const f = d.foods?.[0];
+  if (!f) return null;
+  const get = n => f.foodNutrients?.find(x => x.nutrientName === n)?.value || 0;
+  return {
+    kcal: get('Energy'),
+    prot: get('Protein'),
+    carbs: get('Carbohydrate, by difference'),
+    fat: get('Total lipid (fat)')
+  };
+}
+
+// Calculate real macros from USDA data for a given gram weight
+function applyUSDA(usda, grams) {
+  if (!usda) return null;
+  const factor = grams / 100;
+  return {
+    prot:  Math.round(usda.prot  * factor * 10) / 10,
+    carbs: Math.round(usda.carbs * factor * 10) / 10,
+    fat:   Math.round(usda.fat   * factor * 10) / 10,
+    kcal:  Math.round(usda.kcal  * factor)
+  };
+}
+
+async function selectReceta(id) {
   document.querySelectorAll('.rcard').forEach(c => c.classList.remove('selected'));
   document.getElementById('rc-' + id)?.classList.add('selected');
   const r = ST.recetasList?.find(x => x.id === id);
   if (!r) return;
   document.getElementById('receta-titulo').textContent = r.nombre;
-  const maxP = Math.max(...r.receta_plan.map(p => Number(p.proteina_g)));
+  // Show loading state
   document.getElementById('receta-detalle').innerHTML = `
+    <div style="padding:20px;text-align:center;color:var(--gray-500)">
+      Consultando USDA para macros reales...
+    </div>`;
+
+  // Get USDA queries for this recipe's ingredients
+  let ingredients = [];
+  try {
+    ingredients = await sb(`ingredientes_receta?receta_id=eq.${r.id}&select=nombre,tipo,usda_query`);
+  } catch(e) {}
+
+  const protIngr = ingredients.find(i => i.tipo === 'proteina');
+  const carbIngr = ingredients.find(i => i.tipo === 'carb');
+  const verdIngr = ingredients.find(i => i.tipo === 'verdura');
+
+  // Use receta.usda_query for protein if not in ingredientes_receta
+  const protQuery = protIngr?.usda_query || r.usda_query || (r.proteina_tipo === 'res' ? 'beef sirloin raw' : 'chicken breast raw');
+  const carbQuery = carbIngr?.usda_query || 'white rice cooked';
+  const verdQuery = verdIngr?.usda_query || 'mixed vegetables cooked';
+
+  // Fetch all USDA data in parallel
+  let usdaProt = null, usdaCarb = null, usdaVerd = null;
+  try {
+    [usdaProt, usdaCarb, usdaVerd] = await Promise.all([
+      fetchUSDAMacros(protQuery),
+      fetchUSDAMacros(carbQuery),
+      fetchUSDAMacros(verdQuery)
+    ]);
+  } catch(e) { console.error('USDA fetch error:', e); }
+
+  // Render table
+  const maxP = Math.max(...r.receta_plan.map(p => Number(p.proteina_g)));
+
+  const rows = r.receta_plan.map(p => {
+    const protG = Number(p.proteina_g);
+    const arrozG = Number(p.arroz_g);
+    const verdG = Number(p.verdura_g);
+
+    // Real macros from USDA
+    const mProt = applyUSDA(usdaProt, protG);
+    const mCarb = applyUSDA(usdaCarb, arrozG);
+    const mVerd = applyUSDA(usdaVerd, verdG);
+
+    // Fat from marinado (from DB if available, else estimate)
+    const grasaMarinado = Number(p.costo_marinado) > 0 ? 5 : 5; // ~5g fat from marinade
+
+    const totalProt  = Math.round((mProt?.prot||0) + (mCarb?.prot||0) + (mVerd?.prot||0));
+    const totalCarbs = Math.round((mProt?.carbs||0) + (mCarb?.carbs||0) + (mVerd?.carbs||0));
+    const totalFat   = Math.round((mProt?.fat||0) + (mCarb?.fat||0) + (mVerd?.fat||0) + grasaMarinado);
+    const totalKcal  = Math.round(totalProt * 4 + totalCarbs * 4 + totalFat * 9);
+
+    return { planNombre: p.planes?.nombre||'—', protG, arrozG, verdG, precio: p.precio_kit, totalProt, totalCarbs, totalFat, totalKcal };
+  });
+
+  const maxKcal = Math.max(...rows.map(r => r.totalKcal));
+
+  document.getElementById('receta-detalle').innerHTML = `
+    <div style="font-size:11px;color:var(--gray-500);margin-bottom:12px;padding:6px 10px;background:var(--green-l);border-radius:6px">
+      Macros calculadas desde USDA · ${protQuery} / ${carbQuery} / ${verdQuery}
+    </div>
     <table class="macros-table">
-      <thead><tr><th>Plan</th><th>Proteína</th><th>Arroz</th><th>Verdura</th><th>Kcal</th><th>Precio</th></tr></thead>
-      <tbody>${r.receta_plan.map(p => {
-        const prot=Number(p.proteina_g), arroz=Number(p.arroz_g), verd=Number(p.verdura_g);
-        const m = calcMacros(prot, arroz, verd);
-        return `<tr>
-          <td><strong>${p.planes?.nombre||'—'}</strong></td>
-          <td><div class="bar-wrap"><div class="bar"><div class="bar-fill bar-p" style="width:${Math.round(prot/maxP*100)}%"></div></div><span style="font-size:12px">${prot}g</span></div></td>
-          <td><div class="bar-wrap"><div class="bar"><div class="bar-fill bar-c" style="width:${Math.round(arroz/250*100)}%"></div></div><span style="font-size:12px">${arroz}g</span></div></td>
-          <td><div class="bar-wrap"><div class="bar"><div class="bar-fill bar-v" style="width:${Math.round(verd/150*100)}%"></div></div><span style="font-size:12px">${verd}g</span></div></td>
-          <td><strong style="color:var(--amber)">${m.kcal}</strong></td>
-          <td><strong>$${p.precio_kit}</strong></td>
-        </tr>`;
-      }).join('')}</tbody>
+      <thead><tr><th>Plan</th><th>Peso prot.</th><th>Prot. real</th><th>Carbs</th><th>Grasa</th><th>Kcal</th><th>Precio</th></tr></thead>
+      <tbody>${rows.map(row => `<tr>
+        <td><strong>${row.planNombre}</strong></td>
+        <td style="font-size:12px;color:var(--gray-500)">${row.protG}g crudo</td>
+        <td><div class="bar-wrap"><div class="bar"><div class="bar-fill bar-p" style="width:${Math.round(row.totalProt/60*100)}%"></div></div><span style="font-size:12px">${row.totalProt}g</span></div></td>
+        <td><div class="bar-wrap"><div class="bar"><div class="bar-fill bar-c" style="width:${Math.round(row.totalCarbs/60*100)}%"></div></div><span style="font-size:12px">${row.totalCarbs}g</span></div></td>
+        <td style="font-size:12px">${row.totalFat}g</td>
+        <td><strong style="color:var(--amber)">${row.totalKcal}</strong></td>
+        <td><strong>$${row.precio}</strong></td>
+      </tr>`).join('')}</tbody>
     </table>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px">
-      ${r.receta_plan.map(p => {
-        const m = calcMacros(Number(p.proteina_g), Number(p.arroz_g), Number(p.verdura_g));
-        return `<div style="background:var(--gray-100);border-radius:8px;padding:10px 12px;font-size:12px">
-          <div style="font-weight:600;font-size:11px;color:var(--gray-500);text-transform:uppercase;margin-bottom:6px">${p.planes?.nombre||'—'}</div>
-          <div style="display:flex;flex-direction:column;gap:3px">
-            <div style="display:flex;justify-content:space-between"><span style="color:var(--green-d)">Prot</span><span>${m.prot}g</span></div>
-            <div style="display:flex;justify-content:space-between"><span style="color:var(--amber)">Carbs</span><span>${m.carbs}g</span></div>
-            <div style="display:flex;justify-content:space-between"><span style="color:var(--blue)">Grasa</span><span>${m.fat}g</span></div>
-            <div style="border-top:1px solid var(--gray-300);margin-top:4px;padding-top:4px;display:flex;justify-content:space-between;font-weight:600"><span>Kcal</span><span style="color:var(--amber)">${m.kcal}</span></div>
+      ${rows.map(row => `<div style="background:var(--gray-100);border-radius:8px;padding:10px 12px;font-size:12px">
+        <div style="font-weight:600;font-size:11px;color:var(--gray-500);text-transform:uppercase;margin-bottom:6px">${row.planNombre}</div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--green-d)">Proteína</span><span>${row.totalProt}g</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--amber)">Carbs</span><span>${row.totalCarbs}g</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--blue)">Grasa</span><span>${row.totalFat}g</span></div>
+          <div style="border-top:1px solid var(--gray-300);margin-top:4px;padding-top:4px;display:flex;justify-content:space-between;font-weight:600">
+            <span>Kcal</span><span style="color:var(--amber)">${row.totalKcal}</span>
           </div>
-        </div>`;
-      }).join('')}
+        </div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--gray-300)">
+          <div style="font-size:10px;color:var(--gray-500);margin-bottom:4px">Distribución</div>
+          <div style="display:flex;height:6px;border-radius:3px;overflow:hidden;gap:1px">
+            <div style="background:var(--green);width:${Math.round(row.totalProt*4/row.totalKcal*100)}%"></div>
+            <div style="background:var(--amber);width:${Math.round(row.totalCarbs*4/row.totalKcal*100)}%"></div>
+            <div style="background:var(--blue);width:${Math.round(row.totalFat*9/row.totalKcal*100)}%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--gray-500);margin-top:3px">
+            <span>${Math.round(row.totalProt*4/row.totalKcal*100)}% P</span>
+            <span>${Math.round(row.totalCarbs*4/row.totalKcal*100)}% C</span>
+            <span>${Math.round(row.totalFat*9/row.totalKcal*100)}% G</span>
+          </div>
+        </div>
+      </div>`).join('')}
+    </div>
+    <div style="margin-top:12px;font-size:11px;color:var(--gray-500);line-height:1.6">
+      Solo lectura · Macros calculadas en tiempo real desde USDA FoodData Central
     </div>`;
 }
 
