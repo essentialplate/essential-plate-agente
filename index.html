@@ -392,6 +392,38 @@
   </div>
 </div>
 
+<script>
+const APP_PASSWORD = 'essentialplate2025';
+
+function checkLogin() {
+  const input = document.getElementById('login-password').value;
+  if(input === APP_PASSWORD) {
+    document.getElementById('login-overlay').style.display = 'none';
+    localStorage.setItem('ep_auth', btoa(APP_PASSWORD));
+    // loadInicio called after main script loads
+    if(typeof loadInicio === 'function') loadInicio();
+    else window._autoLoad = true;
+  } else {
+    const err = document.getElementById('login-error');
+    err.style.display = 'block';
+    err.textContent = 'Contraseña incorrecta';
+    document.getElementById('login-password').value = '';
+    document.getElementById('login-password').focus();
+    setTimeout(() => err.style.display = 'none', 2500);
+  }
+}
+
+function initAuth() {
+  const stored = localStorage.getItem('ep_auth');
+  if(stored && atob(stored) === APP_PASSWORD) {
+    document.getElementById('login-overlay').style.display = 'none';
+    if(typeof loadInicio === 'function') loadInicio();
+    else window._autoLoad = true;
+  } else {
+    document.getElementById('login-password').focus();
+  }
+}
+</script>
 
 <!-- SIDEBAR -->
 <nav class="sidebar">
@@ -1838,37 +1870,10 @@ function scrollToForm() { document.getElementById('form-pedido-card').scrollInto
 document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); }));
 
 
-// ══ LOGIN ════════════════════════════════════════════════════
-const APP_PASSWORD = 'os';
-
-function checkLogin() {
-  const input = document.getElementById('login-password').value;
-  if(input === APP_PASSWORD) {
-    document.getElementById('login-overlay').style.display = 'none';
-    localStorage.setItem('ep_auth', btoa(APP_PASSWORD));
-    loadInicio();
-  } else {
-    const err = document.getElementById('login-error');
-    err.style.display = 'block';
-    err.textContent = 'Contraseña incorrecta';
-    document.getElementById('login-password').value = '';
-    document.getElementById('login-password').focus();
-    setTimeout(() => err.style.display = 'none', 2500);
-  }
-}
-
-function initAuth() {
-  const stored = localStorage.getItem('ep_auth');
-  if(stored && atob(stored) === APP_PASSWORD) {
-    document.getElementById('login-overlay').style.display = 'none';
-    loadInicio();
-  } else {
-    document.getElementById('login-password').focus();
-  }
-}
-
 // ══ INIT ═════════════════════════════════════════════════════
-initAuth();
+// Si el usuario ya estaba autenticado cuando este script cargó
+if(window._autoLoad) { loadInicio(); window._autoLoad = false; }
+else { initAuth(); }
 </script>
 </body>
 </html>
