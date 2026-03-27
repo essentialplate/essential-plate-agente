@@ -444,7 +444,7 @@ textarea{resize:vertical;min-height:70px}
 const SB_URL = 'https://wdaqctevstiskkfkxytb.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkYXFjdGV2c3Rpc2trZmt4eXRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NDA1MjUsImV4cCI6MjA4OTUxNjUyNX0.x6GwWIahn26GyYu8LjKs3XKcFe-gGgc-Zh0SIOA460g';
 const USDA_KEY = 'SgfM4irGgMFlePbkAiOegmzoCvTs35obc0pWaaj0';
-const PASSWORD = 'romi';
+const PASSWORD = 'essentialplate2025';
 
 // ═══════════════════════════════════════════════════
 // SUPABASE
@@ -510,7 +510,7 @@ function nav(page) {
   // Topbar actions
   const actions = {
     pedidos: '<button class="btn btn-sm btn-primary" onclick="scrollToForm()">+ Nuevo pedido</button>',
-    recetas: '<button class="btn btn-sm btn-primary" id="btn-receta-action" onclick="recetaAction()">+ Nueva receta</button>',
+    recetas: '<button class="btn btn-sm btn-secondary" onclick="calcularTodosMacros()" id="btn-calc-macros" style="margin-right:6px">Calcular macros USDA</button><button class="btn btn-sm btn-primary" id="btn-receta-action" onclick="recetaAction()">+ Nueva receta</button>',
     roadmap: '<button class="btn btn-sm btn-primary" onclick="abrirTask(\'por_hacer\')">+ Nueva tarea</button>'
   };
   document.getElementById('topbar-actions').innerHTML = actions[page] || '';
@@ -791,7 +791,7 @@ function recetaAction() {
 }
 
 async function loadRecetas() {
-  const recetas = await sb('recetas?select=*,usda_query,receta_plan(proteina_g,arroz_g,verdura_g,precio_kit,costo_marinado,planes(nombre))&activa=eq.true&order=id');
+  const recetas = await sb('recetas?select=*,usda_query,receta_plan(id,proteina_g,arroz_g,verdura_g,precio_kit,costo_marinado,macros_calculados,kcal_real,proteina_real_g,carbs_real_g,grasa_real_g,planes(nombre))&activa=eq.true&order=id');
   ST.recetasList = recetas;
   document.getElementById('lista-recetas').innerHTML = recetas.map((r, i) => `
     <div class="rcard${i===0?' selected':''}" id="rc-${r.id}" onclick="selectReceta(${r.id})">
@@ -835,66 +835,74 @@ async function selectReceta(id) {
   const r = ST.recetasList?.find(x => x.id === id);
   if (!r) return;
   document.getElementById('receta-titulo').textContent = r.nombre;
-  // Show loading state
-  document.getElementById('receta-detalle').innerHTML = `
-    <div style="padding:20px;text-align:center;color:var(--gray-500)">
-      Consultando USDA para macros reales...
-    </div>`;
+  // Check if macros are already saved in DB
+  const todosCalculados = r.receta_plan.every(p => p.macros_calculados);
 
-  // Get USDA queries for this recipe's ingredients
-  let ingredients = [];
-  try {
-    ingredients = await sb(`ingredientes_receta?receta_id=eq.${r.id}&select=nombre,tipo,usda_query`);
-  } catch(e) {}
+  let rows;
+  let fuenteLabel;
 
-  const protIngr = ingredients.find(i => i.tipo === 'proteina');
-  const carbIngr = ingredients.find(i => i.tipo === 'carb');
-  const verdIngr = ingredients.find(i => i.tipo === 'verdura');
+  if (todosCalculados) {
+    // Use saved macros from Supabase — no USDA call needed
+    fuenteLabel = 'Macros guardadas en Supabase · Usa "Calcular macros USDA" para recalcular';
+    rows = r.receta_plan.map(p => ({
+      planNombre:  p.planes?.nombre || '—',
+      protG:       Number(p.proteina_g),
+      arrozG:      Number(p.arroz_g),
+      verdG:       Number(p.verdura_g),
+      precio:      p.precio_kit,
+      totalProt:   Number(p.proteina_real_g)  || 0,
+      totalCarbs:  Number(p.carbs_real_g)     || 0,
+      totalFat:    Number(p.grasa_real_g)     || 0,
+      totalKcal:   Number(p.kcal_real)        || 0,
+    }));
+  } else {
+    // Fetch live from USDA
+    document.getElementById('receta-detalle').innerHTML = `
+      <div style="padding:20px;text-align:center;color:var(--gray-500)">
+        Consultando USDA... (usa el botón "Calcular macros USDA" para guardarlos en Supabase)
+      </div>`;
 
-  // Use receta.usda_query for protein if not in ingredientes_receta
-  const protQuery = protIngr?.usda_query || r.usda_query || (r.proteina_tipo === 'res' ? 'beef sirloin raw' : 'chicken breast raw');
-  const carbQuery = carbIngr?.usda_query || 'white rice cooked';
-  const verdQuery = verdIngr?.usda_query || 'mixed vegetables cooked';
+    let ingredients = [];
+    try { ingredients = await sb(`ingredientes_receta?receta_id=eq.${r.id}&select=nombre,tipo,usda_query`); } catch(e) {}
 
-  // Fetch all USDA data in parallel
-  let usdaProt = null, usdaCarb = null, usdaVerd = null;
-  try {
-    [usdaProt, usdaCarb, usdaVerd] = await Promise.all([
-      fetchUSDAMacros(protQuery),
-      fetchUSDAMacros(carbQuery),
-      fetchUSDAMacros(verdQuery)
-    ]);
-  } catch(e) { console.error('USDA fetch error:', e); }
+    const protIngr = ingredients.find(i => i.tipo === 'proteina');
+    const carbIngr = ingredients.find(i => i.tipo === 'carb');
+    const verdIngr = ingredients.find(i => i.tipo === 'verdura');
 
-  // Render table
-  const maxP = Math.max(...r.receta_plan.map(p => Number(p.proteina_g)));
+    const protQuery = protIngr?.usda_query || r.usda_query || (r.proteina_tipo === 'res' ? 'beef round eye raw' : 'chicken breast skinless raw');
+    const carbQuery = carbIngr?.usda_query || 'white rice cooked';
+    const verdQuery = verdIngr?.usda_query || 'mixed vegetables cooked';
 
-  const rows = r.receta_plan.map(p => {
-    const protG = Number(p.proteina_g);
-    const arrozG = Number(p.arroz_g);
-    const verdG = Number(p.verdura_g);
+    fuenteLabel = `Macros en tiempo real desde USDA · ${protQuery} / ${carbQuery} / ${verdQuery}`;
 
-    // Real macros from USDA
-    const mProt = applyUSDA(usdaProt, protG);
-    const mCarb = applyUSDA(usdaCarb, arrozG);
-    const mVerd = applyUSDA(usdaVerd, verdG);
+    let usdaProt = null, usdaCarb = null, usdaVerd = null;
+    try {
+      [usdaProt, usdaCarb, usdaVerd] = await Promise.all([
+        fetchUSDAMacros(protQuery),
+        fetchUSDAMacros(carbQuery),
+        fetchUSDAMacros(verdQuery)
+      ]);
+    } catch(e) { console.error('USDA fetch error:', e); }
 
-    // Fat from marinado (from DB if available, else estimate)
-    const grasaMarinado = Number(p.costo_marinado) > 0 ? 5 : 5; // ~5g fat from marinade
-
-    const totalProt  = Math.round((mProt?.prot||0) + (mCarb?.prot||0) + (mVerd?.prot||0));
-    const totalCarbs = Math.round((mProt?.carbs||0) + (mCarb?.carbs||0) + (mVerd?.carbs||0));
-    const totalFat   = Math.round((mProt?.fat||0) + (mCarb?.fat||0) + (mVerd?.fat||0) + grasaMarinado);
-    const totalKcal  = Math.round(totalProt * 4 + totalCarbs * 4 + totalFat * 9);
-
-    return { planNombre: p.planes?.nombre||'—', protG, arrozG, verdG, precio: p.precio_kit, totalProt, totalCarbs, totalFat, totalKcal };
-  });
+    rows = r.receta_plan.map(p => {
+      const protG = Number(p.proteina_g), arrozG = Number(p.arroz_g), verdG = Number(p.verdura_g);
+      const mProt = applyUSDA(usdaProt, protG);
+      const mCarb = applyUSDA(usdaCarb, arrozG);
+      const mVerd = applyUSDA(usdaVerd, verdG);
+      const grasaMarinado = 5;
+      const totalProt  = Math.round((mProt?.prot||0)  + (mCarb?.prot||0)  + (mVerd?.prot||0));
+      const totalCarbs = Math.round((mProt?.carbs||0) + (mCarb?.carbs||0) + (mVerd?.carbs||0));
+      const totalFat   = Math.round((mProt?.fat||0)   + (mCarb?.fat||0)   + (mVerd?.fat||0) + grasaMarinado);
+      const totalKcal  = Math.round(totalProt * 4 + totalCarbs * 4 + totalFat * 9);
+      return { planNombre: p.planes?.nombre||'—', protG, arrozG, verdG, precio: p.precio_kit, totalProt, totalCarbs, totalFat, totalKcal };
+    });
+  }
 
   const maxKcal = Math.max(...rows.map(r => r.totalKcal));
 
   document.getElementById('receta-detalle').innerHTML = `
     <div style="font-size:11px;color:var(--gray-500);margin-bottom:12px;padding:6px 10px;background:var(--green-l);border-radius:6px">
-      Macros calculadas desde USDA · ${protQuery} / ${carbQuery} / ${verdQuery}
+      ${fuenteLabel}
     </div>
     <table class="macros-table">
       <thead><tr><th>Plan</th><th>Peso prot.</th><th>Prot. real</th><th>Carbs</th><th>Grasa</th><th>Kcal</th><th>Precio</th></tr></thead>
@@ -937,6 +945,123 @@ async function selectReceta(id) {
     <div style="margin-top:12px;font-size:11px;color:var(--gray-500);line-height:1.6">
       Solo lectura · Macros calculadas en tiempo real desde USDA FoodData Central
     </div>`;
+}
+
+
+// ═══════════════════════════════════════════════════
+// CALCULAR Y GUARDAR MACROS DESDE USDA
+// ═══════════════════════════════════════════════════
+async function calcularTodosMacros() {
+  const btn = document.getElementById('btn-calc-macros');
+  if (!btn) return;
+  btn.textContent = 'Calculando...';
+  btn.disabled = true;
+
+  try {
+    // Traer todas las recetas con sus planes e ingredientes
+    const recetas = await sb('recetas?select=id,nombre,proteina_tipo,usda_query,receta_plan(id,plan_id,proteina_g,arroz_g,verdura_g)&activa=eq.true');
+    const ingredientes = await sb('ingredientes_receta?select=receta_id,tipo,usda_query');
+
+    let totalActualizados = 0;
+    const errores = [];
+
+    for (const receta of recetas) {
+      // Determinar queries USDA para esta receta
+      const ingrs = ingredientes.filter(i => i.receta_id === receta.id);
+      const protIngr = ingrs.find(i => i.tipo === 'proteina');
+      const carbIngr = ingrs.find(i => i.tipo === 'carb');
+      const verdIngr = ingrs.find(i => i.tipo === 'verdura');
+
+      const protQuery = protIngr?.usda_query || receta.usda_query || (receta.proteina_tipo === 'res' ? 'beef round eye raw' : 'chicken breast skinless raw');
+      const carbQuery = carbIngr?.usda_query || 'white rice cooked';
+      const verdQuery = verdIngr?.usda_query || 'mixed vegetables cooked';
+
+      btn.textContent = `Consultando: ${receta.nombre}...`;
+
+      // Fetch USDA para los 3 ingredientes en paralelo
+      let usdaProt, usdaCarb, usdaVerd;
+      try {
+        [usdaProt, usdaCarb, usdaVerd] = await Promise.all([
+          fetchUSDAMacros(protQuery),
+          fetchUSDAMacros(carbQuery),
+          fetchUSDAMacros(verdQuery)
+        ]);
+      } catch(e) {
+        errores.push(`${receta.nombre}: error consultando USDA`);
+        continue;
+      }
+
+      if (!usdaProt || !usdaCarb || !usdaVerd) {
+        errores.push(`${receta.nombre}: no se encontraron resultados en USDA`);
+        continue;
+      }
+
+      // Calcular y guardar macros para cada plan
+      for (const rp of receta.receta_plan) {
+        const protG = Number(rp.proteina_g);
+        const arrozG = Number(rp.arroz_g);
+        const verdG = Number(rp.verdura_g);
+        const grasaMarinado = 5; // ~5g de grasa del marinado
+
+        // Macros reales aplicando proporción por gramos
+        const mProt  = applyUSDA(usdaProt, protG);
+        const mCarb  = applyUSDA(usdaCarb, arrozG);
+        const mVerd  = applyUSDA(usdaVerd, verdG);
+
+        const proteina_real = Math.round((mProt.prot + mCarb.prot + mVerd.prot) * 10) / 10;
+        const carbs_real    = Math.round((mProt.carbs + mCarb.carbs + mVerd.carbs) * 10) / 10;
+        const grasa_real    = Math.round((mProt.fat + mCarb.fat + mVerd.fat + grasaMarinado) * 10) / 10;
+        const kcal_real     = Math.round(proteina_real * 4 + carbs_real * 4 + grasa_real * 9);
+
+        // Guardar en Supabase
+        try {
+          await sb(`receta_plan?id=eq.${rp.id}`, {
+            method: 'PATCH',
+            prefer: 'return=minimal',
+            body: {
+              proteina_real_g: proteina_real,
+              carbs_real_g:    carbs_real,
+              grasa_real_g:    grasa_real,
+              kcal_real:       kcal_real,
+              macros_calculados: true
+            }
+          });
+          totalActualizados++;
+        } catch(e) {
+          errores.push(`${receta.nombre} plan ${rp.plan_id}: error guardando`);
+        }
+      }
+    }
+
+    // Resultado
+    if (errores.length === 0) {
+      btn.textContent = `✓ ${totalActualizados} planes actualizados`;
+      btn.style.background = 'var(--green-l)';
+      btn.style.color = 'var(--green-d)';
+      btn.style.border = '1px solid var(--green-m)';
+    } else {
+      btn.textContent = `✓ ${totalActualizados} ok · ${errores.length} errores`;
+      btn.style.background = '#FEF3C7';
+      btn.style.color = '#92400E';
+    }
+    btn.disabled = false;
+
+    // Recargar recetas para mostrar macros actualizados
+    if (ST.recetasList?.length) await loadRecetas();
+
+    setTimeout(() => {
+      btn.textContent = 'Calcular macros USDA';
+      btn.style.background = '';
+      btn.style.color = '';
+      btn.style.border = '';
+    }, 4000);
+
+  } catch(e) {
+    console.error('calcularTodosMacros:', e);
+    btn.textContent = 'Error — intenta de nuevo';
+    btn.disabled = false;
+    setTimeout(() => btn.textContent = 'Calcular macros USDA', 3000);
+  }
 }
 
 async function guardarNuevaReceta() {
