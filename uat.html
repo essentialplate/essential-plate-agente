@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Essential Plate OS</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green:#7AB648; --green-d:#5a9030; --green-l:#EAF3DE; --green-m:#C0DD97;
+  --gray-900:#1a1a1a; --gray-700:#3d3d3d; --gray-500:#6b6b6b;
+  --gray-300:#d4d4d4; --gray-100:#f5f5f5; --white:#fff;
+  --amber:#f59e0b; --red:#ef4444; --blue:#3b82f6;
+  --sidebar:220px; --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--gray-100);color:var(--gray-900);height:100vh;display:flex;overflow:hidden;font-size:14px}
+
+/* LOGIN */
+#login{position:fixed;inset:0;background:var(--gray-100);display:flex;align-items:center;justify-content:center;z-index:9999}
+.lcard{background:var(--white);border-radius:20px;padding:48px 44px;width:360px;box-shadow:0 8px 40px rgba(0,0,0,.1);text-align:center}
+.licon{width:52px;height:52px;background:var(--green);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+.licon svg{width:28px;height:28px;fill:white}
+.ltitle{font-size:22px;font-weight:600;margin-bottom:6px;letter-spacing:-.5px}
+.lsub{font-size:13px;color:var(--gray-500);margin-bottom:28px}
+.linput{width:100%;padding:12px 16px;border:1.5px solid var(--gray-300);border-radius:10px;font-family:inherit;font-size:15px;text-align:center;letter-spacing:3px;margin-bottom:12px;outline:none;transition:border .15s}
+.linput:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(122,182,72,.12)}
+.lbtn{width:100%;padding:12px;background:var(--green);color:white;border:none;border-radius:10px;font-family:inherit;font-size:15px;font-weight:500;cursor:pointer;transition:background .15s}
+.lbtn:hover{background:var(--green-d)}
+.lerr{color:#dc2626;font-size:12px;margin-top:8px;min-height:18px}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar);background:var(--white);border-right:1px solid var(--gray-300);display:flex;flex-direction:column;flex-shrink:0;padding:24px 0}
+.logo{padding:0 20px 20px;border-bottom:1px solid var(--gray-100);margin-bottom:14px}
+.logo-row{display:flex;align-items:center;gap:10px}
+.logo-icon{width:32px;height:32px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:18px;height:18px;fill:white}
+.logo-name{font-size:15px;font-weight:600;letter-spacing:-.3px}
+.logo-sub{font-size:11px;color:var(--gray-500);margin-top:1px}
+.nav-section{padding:0 12px;margin-bottom:6px}
+.nav-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--gray-500);padding:0 8px;margin-bottom:4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;color:var(--gray-700);font-size:13px;font-weight:400;transition:all .15s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left;font-family:inherit}
+.nav-item:hover{background:var(--gray-100);color:var(--gray-900)}
+.nav-item.active{background:var(--green-l);color:var(--green-d);font-weight:500}
+.nav-item svg{width:16px;height:16px;flex-shrink:0;opacity:.7}
+.nav-item.active svg{opacity:1}
+.sidebar-footer{margin-top:auto;padding:16px 20px 0;border-top:1px solid var(--gray-100)}
+.week-badge{background:var(--green-l);border-radius:8px;padding:10px 12px;font-size:12px}
+.week-badge .wl{color:var(--gray-500);margin-bottom:2px}
+.week-badge .wv{color:var(--green-d);font-weight:600;font-size:13px}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{background:var(--white);border-bottom:1px solid var(--gray-300);padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.page-title{font-size:17px;font-weight:600;letter-spacing:-.3px}
+.topbar-actions{display:flex;gap:8px;align-items:center}
+.content{flex:1;overflow-y:auto;padding:24px 28px}
+
+/* BUTTONS */
+.btn{padding:8px 16px;border-radius:8px;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--green);color:white}.btn-primary:hover{background:var(--green-d)}
+.btn-secondary{background:var(--gray-100);color:var(--gray-700);border:1px solid var(--gray-300)}.btn-secondary:hover{background:var(--gray-300)}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-ghost{background:none;color:var(--gray-500);padding:6px 8px}.btn-ghost:hover{background:var(--gray-100)}
+
+/* PAGES */
+.page{display:none}.page.active{display:block}
+
+/* CARDS */
+.card{background:var(--white);border-radius:var(--radius);border:1px solid var(--gray-300);box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:14px;font-weight:600}
+.card-body{padding:20px}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat{background:var(--white);border-radius:var(--radius);border:1px solid var(--gray-300);padding:16px 18px}
+.stat.green{border-left:3px solid var(--green)}
+.stat-label{font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.stat-value{font-size:26px;font-weight:600;letter-spacing:-1px}
+.stat-sub{font-size:11px;color:var(--gray-500);margin-top:3px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+/* FORMS */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg.full{grid-column:1/-1}
+label{font-size:12px;font-weight:500;color:var(--gray-700)}
+input,select,textarea{padding:8px 12px;border:1px solid var(--gray-300);border-radius:8px;font-family:inherit;font-size:13px;color:var(--gray-900);background:var(--white);outline:none;transition:border .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(122,182,72,.1)}
+textarea{resize:vertical;min-height:70px}
+
+/* TABLE */
+.table{width:100%;border-collapse:collapse}
+.table th{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-500);padding:10px 14px;text-align:left;border-bottom:1px solid var(--gray-100)}
+.table td{padding:11px 14px;border-bottom:1px solid var(--gray-100);font-size:13px;color:var(--gray-700)}
+.table tr:last-child td{border-bottom:none}
+.table tr:hover td{background:var(--gray-100)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500}
+.badge-green{background:var(--green-l);color:var(--green-d)}
+.badge-amber{background:#FEF3C7;color:#92400E}
+.badge-blue{background:#EFF6FF;color:#1D4ED8}
+.badge-gray{background:var(--gray-100);color:var(--gray-500)}
+.badge-red{background:#FEF2F2;color:#991B1B}
+
+/* RECETAS */
+.recetas-layout{display:grid;grid-template-columns:1fr 1.4fr;gap:20px;align-items:start}
+.rcard{border:1.5px solid var(--gray-300);border-radius:var(--radius);padding:14px 16px;cursor:pointer;transition:all .15s;margin-bottom:8px;background:var(--white)}
+.rcard:hover{border-color:var(--green)}
+.rcard.selected{border-color:var(--green);background:var(--green-l)}
+.rcard-name{font-size:14px;font-weight:600;margin-bottom:3px}
+.rcard-meta{font-size:12px;color:var(--gray-500);display:flex;gap:10px}
+.macros-table{width:100%;border-collapse:collapse;margin-top:8px}
+.macros-table th{font-size:11px;color:var(--gray-500);padding:6px 10px;text-align:left;border-bottom:1px solid var(--gray-200)}
+.macros-table td{padding:8px 10px;font-size:13px;border-bottom:1px solid var(--gray-100)}
+.macros-table tr:last-child td{border-bottom:none}
+.bar-wrap{display:flex;align-items:center;gap:8px}
+.bar{height:5px;border-radius:3px;background:var(--gray-200);flex:1;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px}
+.bar-p{background:var(--green)}.bar-c{background:var(--amber)}.bar-v{background:var(--blue)}
+
+/* SUB-TABS */
+.subtabs{display:flex;gap:4px;background:var(--gray-200);padding:4px;border-radius:10px;width:fit-content;margin-bottom:20px}
+.subtab{padding:7px 20px;border-radius:7px;border:none;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--gray-500);transition:all .15s}
+.subtab.active{background:var(--white);color:var(--gray-900);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+/* USDA */
+.usda-results{border:1px solid var(--gray-300);border-radius:8px;overflow:hidden;max-height:200px;overflow-y:auto;margin-bottom:10px}
+.usda-item{padding:10px 14px;border-bottom:1px solid var(--gray-100);cursor:pointer;transition:background .1s}
+.usda-item:hover{background:var(--green-l)}
+.usda-item:last-child{border-bottom:none}
+.usda-item-name{font-size:13px;font-weight:500}
+.usda-item-cal{font-size:11px;color:var(--gray-500);margin-top:2px}
+.usda-sel{background:var(--green-l);border:1.5px solid var(--green-m);border-radius:8px;padding:10px 14px;margin-bottom:12px}
+.usda-sel-name{font-size:13px;font-weight:600;color:var(--green-d);margin-bottom:4px}
+.usda-sel-macros{display:flex;gap:14px;font-size:12px;color:var(--gray-600)}
+
+/* PRECIO PREVIEW */
+.precio-card{background:var(--green-l);border:1.5px solid var(--green-m);border-radius:10px;padding:12px 18px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.precio-valor{font-size:24px;font-weight:600;color:var(--green-d);letter-spacing:-.5px}
+.precio-det{font-size:12px;color:var(--green-d);text-align:right;line-height:1.6}
+
+/* KANBAN */
+.area-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.area-tab{padding:7px 16px;border-radius:20px;border:1.5px solid var(--gray-300);background:var(--white);font-size:13px;font-weight:500;cursor:pointer;color:var(--gray-700);font-family:inherit;transition:all .15s}
+.area-tab:hover{border-color:var(--green);color:var(--green-d)}
+.area-tab.active{background:var(--green);border-color:var(--green);color:white}
+.kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.kcol{background:var(--gray-100);border-radius:var(--radius);padding:14px;min-height:400px}
+.kcol-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.kcol-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-500)}
+.kcol-cnt{background:var(--gray-300);color:var(--gray-700);border-radius:20px;padding:1px 8px;font-size:11px;font-weight:600}
+.task{background:var(--white);border-radius:8px;padding:12px 14px;margin-bottom:8px;border:1px solid var(--gray-300);box-shadow:0 1px 2px rgba(0,0,0,.05);transition:box-shadow .15s}
+.task:hover{box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.task-title{font-size:13px;font-weight:500;margin-bottom:5px}
+.task-desc{font-size:12px;color:var(--gray-500);line-height:1.5;margin-bottom:8px}
+.task-footer{display:flex;align-items:center;justify-content:space-between}
+.tbtn{background:none;border:none;cursor:pointer;padding:3px 5px;border-radius:4px;color:var(--gray-400);font-size:12px;font-family:inherit}
+.tbtn:hover{background:var(--gray-100);color:var(--gray-700)}
+.tbtn.del:hover{background:#FEF2F2;color:var(--red)}
+.add-task{width:100%;padding:8px;border:1.5px dashed var(--gray-300);border-radius:8px;background:none;color:var(--gray-500);font-family:inherit;font-size:13px;cursor:pointer;margin-top:4px}
+.add-task:hover{border-color:var(--green);color:var(--green-d);background:var(--green-l)}
+
+/* CLIENTES */
+.cliente{background:var(--white);border:1px solid var(--gray-300);border-radius:var(--radius);padding:14px 18px;margin-bottom:10px;display:flex;align-items:center;gap:14px}
+.c-avatar{width:38px;height:38px;border-radius:50%;background:var(--green-l);color:var(--green-d);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;flex-shrink:0}
+.c-info{flex:1}
+.c-nombre{font-size:14px;font-weight:600}
+.c-meta{font-size:12px;color:var(--gray-500);margin-top:2px}
+.c-stats{text-align:right}
+.c-total{font-size:15px;font-weight:600;color:var(--green-d)}
+.c-pedidos{font-size:11px;color:var(--gray-500)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--white);border-radius:16px;padding:24px;width:460px;max-width:95vw;max-height:90vh;overflow-y:auto;transform:translateY(8px);transition:transform .2s;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.modal-title{font-size:16px;font-weight:600}
+.modal-close{background:none;border:none;cursor:pointer;font-size:22px;color:var(--gray-500);line-height:1;padding:2px 6px;border-radius:4px}
+.modal-close:hover{background:var(--gray-100)}
+.mb-14{margin-bottom:14px}
+
+/* MISC */
+.muted{color:var(--gray-500);font-size:12px}
+.divider{height:1px;background:var(--gray-100);margin:14px 0}
+.search-row{display:flex;gap:8px;margin-bottom:10px}
+.search-row input{flex:1}
+.empty{text-align:center;padding:32px;color:var(--gray-500);font-size:13px}
+
+  /* UAT BANNER */
+  #uat-banner {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    background: #f59e0b;
+    color: #431407;
+    text-align: center;
+    padding: 6px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  body.uat-mode { padding-top: 32px; }
+  body.uat-mode .sidebar { top: 32px; }
+</style>
+</head>
+<body>
+
+<!-- UAT BANNER -->
+<div id="uat-banner" style="display:none">
+  <span>⚠</span>
+  <span>AMBIENTE UAT — Los cambios aquí afectan datos reales. Solo para pruebas.</span>
+  <span>⚠</span>
+</div>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="lcard">
+    <div class="licon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg></div>
+    <div class="ltitle">Essential Plate OS</div>
+    <div class="lsub">Panel operativo</div>
+    <input class="linput" type="password" id="pw" placeholder="Contraseña" onkeydown="if(event.key==='Enter')login()">
+    <button class="lbtn" onclick="login()">Entrar</button>
+    <div class="lerr" id="lerr"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;width:100%;height:100vh;display:none;flex">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-row">
+      <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg></div>
+      <div><div class="logo-name">Essential Plate</div><div class="logo-sub">Panel operativo</div></div>
+    </div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Principal</div>
+    <button class="nav-item active" id="nav-inicio" onclick="nav('inicio')">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Inicio
+    </button>
+    <button class="nav-item" id="nav-pedidos" onclick="nav('pedidos')">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>Pedidos
+    </button>
+    <button class="nav-item" id="nav-clientes" onclick="nav('clientes')">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Clientes
+    </button>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Producto</div>
+    <button class="nav-item" id="nav-recetas" onclick="nav('recetas')">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26 1.44 1.42 2.43 2.89 2.43 5.29v8.05zM1 21.99V21h15.03v.99c0 .55-.45 1-1.01 1H2.01c-.56 0-1.01-.45-1.01-1zm15.03-7c0-8-15.03-8-15.03 0h15.03zM1.02 17h15v2H1.02z"/></svg>Recetas
+    </button>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Estrategia</div>
+    <button class="nav-item" id="nav-finanzas" onclick="nav('finanzas')">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>Finanzas
+    </button>
+    <button class="nav-item" id="nav-roadmap" onclick="nav('roadmap')">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>Roadmaps
+    </button>
+  </div>
+  <div class="sidebar-footer">
+    <div class="week-badge"><div class="wl">Entrega próxima</div><div class="wv" id="week-label">—</div></div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="page-title" id="page-title">Inicio</div>
+    <div class="topbar-actions" id="topbar-actions"></div>
+  </div>
+  <div class="content">
+
+    <!-- INICIO -->
+    <div id="page-inicio" class="page active">
+      <div class="stats-grid">
+        <div class="stat green"><div class="stat-label">Kits semana activa</div><div class="stat-value" id="s-kits">—</div><div class="stat-sub" id="s-kits-sub">—</div></div>
+        <div class="stat"><div class="stat-label">Ingresos</div><div class="stat-value" id="s-ingresos">—</div><div class="stat-sub">semana activa</div></div>
+        <div class="stat"><div class="stat-label">Clientes</div><div class="stat-value" id="s-clientes">—</div><div class="stat-sub">registrados</div></div>
+        <div class="stat"><div class="stat-label">Recetas activas</div><div class="stat-value" id="s-recetas">—</div><div class="stat-sub">en catálogo</div></div>
+      </div>
+      <div class="two-col">
+        <div class="card"><div class="card-header"><div class="card-title">Pedidos recientes</div><button class="btn btn-sm btn-secondary" onclick="nav('pedidos')">Ver todos</button></div><div class="card-body" id="inicio-pedidos"><div class="muted">Cargando...</div></div></div>
+        <div class="card"><div class="card-header"><div class="card-title">Resumen semana activa</div></div><div class="card-body" id="inicio-resumen"><div class="muted">Cargando...</div></div></div>
+      </div>
+    </div>
+
+    <!-- PEDIDOS -->
+    <div id="page-pedidos" class="page">
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header"><div class="card-title">Nuevo pedido</div><button class="btn-ghost btn" onclick="toggleForm()">Colapsar ↑</button></div>
+        <div class="card-body" id="form-body">
+          <div class="form-grid">
+            <div class="fg">
+              <label>Cliente</label>
+              <select id="f-cliente" onchange="onClienteChange()">
+                <option value="">Seleccionar...</option>
+                <option value="nuevo">+ Nuevo cliente</option>
+              </select>
+            </div>
+            <div class="fg" id="f-nuevo-wrap" style="display:none">
+              <label>Nombre del nuevo cliente</label>
+              <input type="text" id="f-nuevo-nombre" placeholder="Nombre completo">
+            </div>
+            <div class="fg">
+              <label>Plan nutricional</label>
+              <select id="f-plan" onchange="actualizarPrecio()">
+                <option value="">Seleccionar...</option>
+                <option value="1">Control de peso</option>
+                <option value="2">Mantenimiento</option>
+                <option value="3">Aumento de Masa</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label>Tipo de paquete</label>
+              <select id="f-tipo" onchange="onTipoChange()">
+                <option value="">Seleccionar...</option>
+                <option value="individual">Individual — 1 kit</option>
+                <option value="paquete_3">Paquete — 3 kits</option>
+                <option value="paquete_5">Paquete — 5 kits</option>
+                <option value="mix_3">Mix — 3 kits (2 pollo + 1 res)</option>
+                <option value="mix_5">Mix — 5 kits (3 pollo + 2 res)</option>
+              </select>
+            </div>
+            <div class="fg" id="f-receta-wrap">
+              <label>Receta</label>
+              <select id="f-receta" onchange="actualizarPrecio()">
+                <option value="">Seleccionar...</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label>Estado</label>
+              <select id="f-estado">
+                <option value="recibido">Recibido</option>
+                <option value="confirmado">Confirmado</option>
+                <option value="producido">Producido</option>
+                <option value="entregado">Entregado</option>
+              </select>
+            </div>
+            <div class="fg full">
+              <label>Notas (dirección, instrucciones...)</label>
+              <textarea id="f-notas" placeholder="Opcional"></textarea>
+            </div>
+          </div>
+          <div class="precio-card" id="precio-preview" style="display:none">
+            <div><div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--green-d)">Total del pedido</div><div class="precio-valor" id="precio-valor">—</div></div>
+            <div class="precio-det" id="precio-det"></div>
+          </div>
+          <button class="btn btn-primary" onclick="guardarPedido()">Guardar pedido</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Todos los pedidos</div></div>
+        <div style="overflow-x:auto">
+          <table class="table">
+            <thead><tr><th>Semana</th><th>Cliente</th><th>Receta / Mix</th><th>Paquete</th><th>Total</th><th>Estado</th><th></th></tr></thead>
+            <tbody id="tbody-pedidos"><tr><td colspan="7" class="muted" style="padding:20px;text-align:center">Cargando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLIENTES -->
+    <div id="page-clientes" class="page">
+      <div id="lista-clientes"><div class="muted">Cargando...</div></div>
+    </div>
+
+    <!-- RECETAS -->
+    <div id="page-recetas" class="page">
+      <div class="subtabs">
+        <button class="subtab active" id="rt-consolidadas" onclick="recetasTab('consolidadas')">Consolidadas</button>
+        <button class="subtab" id="rt-laboratorio" onclick="recetasTab('laboratorio')">Laboratorio</button>
+      </div>
+      <div id="rsub-consolidadas">
+        <div class="recetas-layout">
+          <div id="lista-recetas"><div class="muted">Cargando...</div></div>
+          <div class="card"><div class="card-header"><div class="card-title" id="receta-titulo">Selecciona una receta</div></div><div class="card-body" id="receta-detalle"><div class="empty">Elige una receta de la lista</div></div></div>
+        </div>
+      </div>
+      <div id="rsub-laboratorio" style="display:none">
+        <div class="recetas-layout">
+          <div id="lista-borradores"><div class="muted">Cargando...</div></div>
+          <div class="card"><div class="card-header"><div class="card-title" id="lab-titulo">Nueva receta</div><button class="btn btn-sm btn-primary" onclick="nuevoBorrador()">+ Nueva</button></div><div class="card-body" id="lab-editor"><div class="empty">Crea o selecciona un borrador</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FINANZAS -->
+    <div id="page-finanzas" class="page">
+      <div class="stats-grid" style="margin-bottom:20px">
+        <div class="stat green"><div class="stat-label">Ingresos totales</div><div class="stat-value" id="f-ingresos">—</div><div class="stat-sub" id="f-semanas">histórico</div></div>
+        <div class="stat"><div class="stat-label">Costo estimado</div><div class="stat-value" id="f-costo">—</div><div class="stat-sub">ingredientes + empaque</div></div>
+        <div class="stat"><div class="stat-label">Margen bruto</div><div class="stat-value" id="f-margen-pct">—</div><div class="stat-sub" id="f-margen-mxn">—</div></div>
+        <div class="stat"><div class="stat-label">Ticket promedio</div><div class="stat-value" id="f-ticket">—</div><div class="stat-sub">por pedido</div></div>
+      </div>
+      <div class="two-col" style="margin-bottom:16px">
+        <div class="card"><div class="card-header"><div class="card-title">Por semana</div></div><div style="overflow-x:auto"><table class="table"><thead><tr><th>Semana</th><th>Pedidos</th><th>Ingresos</th><th>Costo est.</th><th>Margen</th></tr></thead><tbody id="fin-semanas"><tr><td colspan="5" class="muted" style="padding:20px;text-align:center">Cargando...</td></tr></tbody></table></div></div>
+        <div class="card"><div class="card-header"><div class="card-title">Margen por receta y plan</div></div><div style="overflow-x:auto"><table class="table"><thead><tr><th>Receta</th><th>Plan</th><th>Venta</th><th>Costo</th><th>Margen</th></tr></thead><tbody id="fin-margenes"><tr><td colspan="5" class="muted" style="padding:20px;text-align:center">Cargando...</td></tr></tbody></table></div></div>
+      </div>
+    </div>
+
+    <!-- ROADMAP -->
+    <div id="page-roadmap" class="page">
+      <div class="area-tabs">
+        <button class="area-tab active" id="at-marketing" onclick="switchArea('marketing',this)">Marketing</button>
+        <button class="area-tab" id="at-estrategia" onclick="switchArea('estrategia',this)">Estrategia</button>
+        <button class="area-tab" id="at-operaciones" onclick="switchArea('operaciones',this)">Operaciones</button>
+        <button class="area-tab" id="at-recetas" onclick="switchArea('recetas',this)">Recetas</button>
+      </div>
+      <div class="kanban">
+        <div class="kcol"><div class="kcol-header"><span class="kcol-title">Por hacer</span><span class="kcol-cnt" id="cnt-por_hacer">0</span></div><div id="col-por_hacer"></div><button class="add-task" onclick="abrirTask('por_hacer')">+ Agregar tarea</button></div>
+        <div class="kcol"><div class="kcol-header"><span class="kcol-title">En progreso</span><span class="kcol-cnt" id="cnt-en_progreso">0</span></div><div id="col-en_progreso"></div><button class="add-task" onclick="abrirTask('en_progreso')">+ Agregar tarea</button></div>
+        <div class="kcol"><div class="kcol-header"><span class="kcol-title">Listo</span><span class="kcol-cnt" id="cnt-listo">0</span></div><div id="col-listo"></div><button class="add-task" onclick="abrirTask('listo')">+ Agregar tarea</button></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- MODAL TAREA -->
+<div class="modal-overlay" id="modal-task">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Nueva tarea</div><button class="modal-close" onclick="cerrarModal('modal-task')">×</button></div>
+    <div class="fg mb-14"><label>Título</label><input type="text" id="task-titulo" placeholder="¿Qué hay que hacer?"></div>
+    <div class="fg mb-14"><label>Descripción (opcional)</label><textarea id="task-desc" placeholder="Detalles..."></textarea></div>
+    <div class="form-grid mb-14">
+      <div class="fg"><label>Prioridad</label><select id="task-prio"><option value="alta">Alta</option><option value="media" selected>Media</option><option value="baja">Baja</option></select></div>
+      <div class="fg"><label>Fecha límite</label><input type="date" id="task-fecha"></div>
+    </div>
+    <button class="btn btn-primary" style="width:100%" onclick="guardarTask()">Guardar tarea</button>
+  </div>
+</div>
+
+<!-- MODAL NUEVA RECETA CONSOLIDADA -->
+<div class="modal-overlay" id="modal-receta">
+  <div class="modal" style="width:500px">
+    <div class="modal-header"><div class="modal-title">Nueva receta</div><button class="modal-close" onclick="cerrarModal('modal-receta')">×</button></div>
+    <div class="form-grid mb-14">
+      <div class="fg"><label>Nombre</label><input type="text" id="nr-nombre" placeholder="Ej: Salmón Teriyaki"></div>
+      <div class="fg"><label>Proteína</label><select id="nr-proteina"><option value="pollo">Pollo</option><option value="res">Res</option><option value="salmon">Salmón</option><option value="atun">Atún</option><option value="otro">Otro</option></select></div>
+    </div>
+    <div class="divider"></div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:8px">Precio por kit</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+      <div class="fg"><label>Control peso</label><input type="number" id="nr-cp" placeholder="$0"></div>
+      <div class="fg"><label>Mantenimiento</label><input type="number" id="nr-mant" placeholder="$0"></div>
+      <div class="fg"><label>Aumento masa</label><input type="number" id="nr-am" placeholder="$0"></div>
+    </div>
+    <button class="btn btn-primary" style="width:100%" onclick="guardarNuevaReceta()">Crear receta</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════
+const SB_URL = 'https://wdaqctevstiskkfkxytb.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkYXFjdGV2c3Rpc2trZmt4eXRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NDA1MjUsImV4cCI6MjA4OTUxNjUyNX0.x6GwWIahn26GyYu8LjKs3XKcFe-gGgc-Zh0SIOA460g';
+const USDA_KEY = 'SgfM4irGgMFlePbkAiOegmzoCvTs35obc0pWaaj0';
+const PASSWORD = 'essentialplate2025';
+const UAT_MODE = true; // Cambia a false en index.html (prod)
+
+// ═══════════════════════════════════════════════════
+// SUPABASE
+// ═══════════════════════════════════════════════════
+async function sb(path, opts = {}) {
+  const url = `${SB_URL}/rest/v1/${path}`;
+  const res = await fetch(url, {
+    method: opts.method || 'GET',
+    headers: {
+      'apikey': SB_KEY,
+      'Authorization': `Bearer ${SB_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': opts.prefer || 'return=representation',
+      ...(opts.headers || {})
+    },
+    body: opts.body ? JSON.stringify(opts.body) : undefined
+  });
+  if (res.status === 204) return [];
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Supabase error');
+  return data;
+}
+
+// ═══════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════
+function login() {
+  const pw = document.getElementById('pw').value;
+  if (pw === PASSWORD) {
+    localStorage.setItem('ep_ok', '1');
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    initApp();
+  } else {
+    document.getElementById('lerr').textContent = 'Contraseña incorrecta';
+    document.getElementById('pw').value = '';
+    setTimeout(() => document.getElementById('lerr').textContent = '', 2000);
+  }
+}
+
+function checkAuth() {
+  if (typeof UAT_MODE !== 'undefined' && UAT_MODE) {
+    document.getElementById('uat-banner').style.display = 'flex';
+    document.body.classList.add('uat-mode');
+    document.title = '[UAT] Essential Plate OS';
+  }
+  if (localStorage.getItem('ep_ok') === '1') {
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    initApp();
+  } else {
+    document.getElementById('pw').focus();
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════
+const PAGE_TITLES = { inicio:'Inicio', pedidos:'Pedidos', clientes:'Clientes', recetas:'Recetas', finanzas:'Finanzas', roadmap:'Roadmaps' };
+
+function nav(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  const navEl = document.getElementById('nav-' + page);
+  if (navEl) navEl.classList.add('active');
+  document.getElementById('page-title').textContent = PAGE_TITLES[page] || '';
+  // Topbar actions
+  const actions = {
+    pedidos: '<button class="btn btn-sm btn-primary" onclick="scrollToForm()">+ Nuevo pedido</button>',
+    recetas: '<button class="btn btn-sm btn-secondary" onclick="calcularTodosMacros()" id="btn-calc-macros" style="margin-right:6px">Calcular macros USDA</button><button class="btn btn-sm btn-primary" id="btn-receta-action" onclick="recetaAction()">+ Nueva receta</button>',
+    roadmap: '<button class="btn btn-sm btn-primary" onclick="abrirTask(\'por_hacer\')">+ Nueva tarea</button>'
+  };
+  document.getElementById('topbar-actions').innerHTML = actions[page] || '';
+  // Load data
+  if (page === 'pedidos') loadPedidos();
+  if (page === 'clientes') loadClientes();
+  if (page === 'recetas') loadRecetas();
+  if (page === 'finanzas') loadFinanzas();
+  if (page === 'roadmap') loadRoadmap();
+}
+
+// ═══════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════
+function fmt(n) { return '$' + Number(n || 0).toLocaleString('es-MX'); }
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d + 'T12:00:00').toLocaleDateString('es-MX', { day:'numeric', month:'short', year:'numeric' });
+}
+function badge(estado) {
+  const m = { recibido:'badge-gray', confirmado:'badge-blue', producido:'badge-amber', entregado:'badge-green' };
+  const l = { recibido:'Recibido', confirmado:'Confirmado', producido:'Producido', entregado:'Entregado' };
+  return `<span class="badge ${m[estado]||'badge-gray'}">${l[estado]||estado}</span>`;
+}
+function tipoLabel(t) {
+  return { individual:'1 kit', paquete_3:'3 kits', paquete_5:'5 kits', mix_3:'Mix 3', mix_5:'Mix 5' }[t] || t;
+}
+function calcKcal(prot, arroz, verd) {
+  return Math.round(prot * 4 + arroz * 1.3 + verd * 0.35 + 8 * 9);
+}
+function calcMacros(prot, arroz, verd) {
+  return {
+    prot: Math.round(prot * 0.85),
+    carbs: Math.round(arroz * 0.28 + verd * 0.05),
+    fat: 8,
+    kcal: calcKcal(prot, arroz, verd)
+  };
+}
+function cerrarModal(id) { document.getElementById(id).classList.remove('open'); }
+function scrollToForm() { document.getElementById('form-body').scrollIntoView({ behavior:'smooth' }); }
+let formVisible = true;
+function toggleForm() { 
+  formVisible = !formVisible;
+  document.getElementById('form-body').style.display = formVisible ? '' : 'none';
+}
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+let ST = { clientes:[], recetas:[], planes:[], paquetes:[], paquetesMix:[], borradores:[], roadmapArea:'marketing', taskEstado:'por_hacer', usdaSelected:null, borradorActivo:null };
+
+async function initApp() {
+  // Week label
+  const d = new Date();
+  const day = d.getDay();
+  let diff = day === 0 ? 7 : day <= 4 ? 7 - day : 14 - day;
+  const next = new Date(d); next.setDate(d.getDate() + diff);
+  document.getElementById('week-label').textContent = fmtDate(next.toISOString().split('T')[0]);
+  loadInicio();
+}
+
+// ═══════════════════════════════════════════════════
+// INICIO
+// ═══════════════════════════════════════════════════
+async function loadInicio() {
+  try {
+    const [clientes, recetas, pedidos] = await Promise.all([
+      sb('clientes?select=id'),
+      sb('recetas?select=id&activa=eq.true'),
+      sb('pedidos?select=*,clientes(nombre)&order=semana.desc,created_at.desc&limit=20')
+    ]);
+    document.getElementById('s-clientes').textContent = clientes.length;
+    document.getElementById('s-recetas').textContent = recetas.length;
+    // Most recent week with data
+    const semanas = [...new Set(pedidos.map(p => p.semana))].sort().reverse();
+    const semanaActiva = semanas[0];
+    const pedidosSemana = pedidos.filter(p => p.semana === semanaActiva);
+    const totalPesos = pedidosSemana.reduce((s, p) => s + Number(p.total_pesos || 0), 0);
+    document.getElementById('s-kits').textContent = pedidosSemana.length || '0';
+    document.getElementById('s-kits-sub').textContent = semanaActiva ? fmtDate(semanaActiva) : '—';
+    document.getElementById('s-ingresos').textContent = fmt(totalPesos);
+    // Pedidos list
+    document.getElementById('inicio-pedidos').innerHTML = pedidos.length === 0
+      ? '<div class="empty">Sin pedidos aún</div>'
+      : pedidos.slice(0, 6).map(p => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-100)">
+          <div><div style="font-size:13px;font-weight:500">${p.clientes?.nombre||'—'}</div><div class="muted">${fmtDate(p.semana)}</div></div>
+          <div style="text-align:right"><div style="font-weight:600;color:var(--green-d)">${fmt(p.total_pesos)}</div>${badge(p.estado)}</div>
+        </div>`).join('');
+    // Resumen
+    document.getElementById('inicio-resumen').innerHTML = semanaActiva
+      ? `<div class="muted" style="margin-bottom:8px">Semana del ${fmtDate(semanaActiva)}</div>
+         <div style="font-size:28px;font-weight:600;letter-spacing:-1px;color:var(--green-d)">${fmt(totalPesos)}</div>
+         <div class="muted" style="margin-top:4px">${pedidosSemana.length} pedido${pedidosSemana.length!==1?'s':''}</div>`
+      : '<div class="empty">Sin datos</div>';
+  } catch(e) { console.error('loadInicio:', e); }
+}
+
+// ═══════════════════════════════════════════════════
+// PEDIDOS
+// ═══════════════════════════════════════════════════
+async function loadPedidos() {
+  await loadCatalog();
+  await loadTablaPedidos();
+}
+
+async function loadCatalog() {
+  if (ST.clientes.length) return;
+  const [cl, rc, pq, pm] = await Promise.all([
+    sb('clientes?select=id,nombre&activo=eq.true&order=nombre'),
+    sb('recetas?select=id,nombre&activa=eq.true&order=nombre'),
+    sb('paquetes?select=id,tipo_paquete,precio_venta,receta_plan_id,receta_plan(receta_id,plan_id)'),
+    sb('paquetes_mix?select=id,tipo_mix,plan_id,kits_pollo,kits_res,precio_venta')
+  ]);
+  ST.clientes = cl; ST.recetas = rc; ST.paquetes = pq; ST.paquetesMix = pm;
+  // Populate selects
+  const selC = document.getElementById('f-cliente');
+  cl.forEach(c => { const o = new Option(c.nombre, c.id); selC.insertBefore(o, selC.lastElementChild); });
+  const selR = document.getElementById('f-receta');
+  rc.forEach(r => selR.add(new Option(r.nombre, r.id)));
+}
+
+function onClienteChange() {
+  const v = document.getElementById('f-cliente').value;
+  document.getElementById('f-nuevo-wrap').style.display = v === 'nuevo' ? '' : 'none';
+}
+
+function onTipoChange() {
+  const t = document.getElementById('f-tipo').value;
+  const esMix = t.startsWith('mix');
+  document.getElementById('f-receta-wrap').style.display = esMix ? 'none' : '';
+  actualizarPrecio();
+}
+
+function actualizarPrecio() {
+  const tipo = document.getElementById('f-tipo').value;
+  const planId = document.getElementById('f-plan').value;
+  const recId = document.getElementById('f-receta').value;
+  const prev = document.getElementById('precio-preview');
+  if (!tipo || !planId) { prev.style.display = 'none'; return; }
+  const esMix = tipo.startsWith('mix');
+  if (esMix) {
+    const mix = ST.paquetesMix.find(m => m.plan_id == planId && m.tipo_mix === tipo);
+    if (mix) {
+      prev.style.display = 'flex';
+      document.getElementById('precio-valor').textContent = fmt(mix.precio_venta);
+      document.getElementById('precio-det').innerHTML = `${tipoLabel(tipo)}<br>${mix.kits_pollo} Pollo + ${mix.kits_res} Res`;
+      ST._precio = mix.precio_venta;
+      ST._mixId = mix.id;
+      ST._paqId = null;
+    } else { prev.style.display = 'none'; }
+  } else {
+    if (!recId) { prev.style.display = 'none'; return; }
+    const paq = ST.paquetes.find(p => p.receta_plan?.receta_id == recId && p.receta_plan?.plan_id == planId && p.tipo_paquete === tipo);
+    if (paq) {
+      prev.style.display = 'flex';
+      const rec = ST.recetas.find(r => r.id == recId);
+      document.getElementById('precio-valor').textContent = fmt(paq.precio_venta);
+      document.getElementById('precio-det').innerHTML = `${tipoLabel(tipo)}<br>${rec?.nombre||''}`;
+      ST._precio = paq.precio_venta;
+      ST._paqId = paq.id;
+      ST._mixId = null;
+    } else { prev.style.display = 'none'; }
+  }
+}
+
+async function guardarPedido() {
+  const clienteId = document.getElementById('f-cliente').value;
+  const nuevoNombre = document.getElementById('f-nuevo-nombre').value.trim();
+  const planId = document.getElementById('f-plan').value;
+  const tipo = document.getElementById('f-tipo').value;
+  const estado = document.getElementById('f-estado').value;
+  const notas = document.getElementById('f-notas').value.trim();
+  if (!clienteId) return alert('Selecciona un cliente');
+  if (!planId || !tipo) return alert('Selecciona plan y tipo de paquete');
+  if (!ST._precio) return alert('No se encontró el precio para esa combinación');
+  // Domingo de entrega
+  const d = new Date(); const day = d.getDay();
+  let diff = day === 0 ? 7 : day <= 4 ? 7 - day : 14 - day;
+  const sunday = new Date(d); sunday.setDate(d.getDate() + diff);
+  const semana = sunday.toISOString().split('T')[0];
+  // Cliente
+  let finalClienteId = clienteId;
+  if (clienteId === 'nuevo') {
+    if (!nuevoNombre) return alert('Escribe el nombre del cliente');
+    const [nc] = await sb('clientes', { method:'POST', body:{ nombre:nuevoNombre, telefono:'', activo:true } });
+    finalClienteId = nc.id;
+    ST.clientes = []; // reset para recargar
+  }
+  // Pedido
+  const [pedido] = await sb('pedidos', { method:'POST', body:{ cliente_id:finalClienteId, semana, estado, total_pesos:ST._precio, notas } });
+  // Detalle
+  const esMix = tipo.startsWith('mix');
+  const paq = esMix ? ST.paquetes.find(p => p.tipo_paquete === tipo) : ST.paquetes.find(p => p.id === ST._paqId);
+  await sb('detalle_pedido', { method:'POST', body:{
+    pedido_id: pedido.id,
+    tipo_paquete: tipo,
+    cantidad: 1,
+    precio_unitario: ST._precio,
+    receta_plan_id: esMix ? null : (paq?.receta_plan_id || null),
+    paquete_mix_id: esMix ? ST._mixId : null
+  }});
+  // Reset form
+  ['f-cliente','f-plan','f-tipo','f-receta','f-estado'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-notas').value = '';
+  document.getElementById('f-nuevo-wrap').style.display = 'none';
+  document.getElementById('f-receta-wrap').style.display = '';
+  document.getElementById('precio-preview').style.display = 'none';
+  ST._precio = ST._paqId = ST._mixId = null;
+  await loadTablaPedidos();
+}
+
+async function loadTablaPedidos() {
+  const pedidos = await sb('pedidos?select=*,clientes(nombre),detalle_pedido(tipo_paquete,precio_unitario,receta_plan(recetas(nombre),planes(nombre)),paquetes_mix(tipo_mix,planes(nombre)))&order=semana.desc,created_at.desc&limit=40');
+  const rows = pedidos.map(p => {
+    const d = p.detalle_pedido?.[0];
+    const esMix = d?.tipo_paquete?.startsWith('mix');
+    const recNom = esMix ? 'Mix' : (d?.receta_plan?.recetas?.nombre || '—');
+    const planNom = esMix ? (d?.paquetes_mix?.planes?.nombre || '—') : (d?.receta_plan?.planes?.nombre || '—');
+    return `<tr>
+      <td style="font-size:11px;color:var(--gray-500)">${fmtDate(p.semana)}</td>
+      <td><strong>${p.clientes?.nombre||'—'}</strong></td>
+      <td style="font-size:12px">${recNom} · <span class="muted">${planNom}</span></td>
+      <td>${tipoLabel(d?.tipo_paquete)}</td>
+      <td><strong style="color:var(--green-d)">${fmt(p.total_pesos)}</strong></td>
+      <td>${badge(p.estado)}</td>
+      <td><select onchange="cambiarEstado(${p.id},this.value)" style="font-size:11px;padding:3px 6px;border-radius:6px;border:1px solid var(--gray-300);font-family:inherit">
+        ${['recibido','confirmado','producido','entregado'].map(e=>`<option${p.estado===e?' selected':''}>${e}</option>`).join('')}
+      </select></td>
+    </tr>`;
+  });
+  const total = pedidos.reduce((s,p)=>s+Number(p.total_pesos||0),0);
+  document.getElementById('tbody-pedidos').innerHTML = rows.length
+    ? rows.join('') + `<tr style="background:var(--gray-100)"><td colspan="4" class="muted" style="padding:10px 14px">${pedidos.length} pedidos</td><td style="padding:10px 14px"><strong style="color:var(--green-d)">${fmt(total)}</strong></td><td colspan="2"></td></tr>`
+    : '<tr><td colspan="7" class="empty" style="padding:24px">Sin pedidos</td></tr>';
+}
+
+async function cambiarEstado(id, estado) {
+  await sb(`pedidos?id=eq.${id}`, { method:'PATCH', body:{ estado }, prefer:'return=minimal' });
+  await loadTablaPedidos();
+}
+
+// ═══════════════════════════════════════════════════
+// CLIENTES
+// ═══════════════════════════════════════════════════
+async function loadClientes() {
+  const cl = await sb('clientes?select=*,pedidos(id,total_pesos)&activo=eq.true&order=nombre');
+  document.getElementById('lista-clientes').innerHTML = cl.length
+    ? cl.map(c => {
+        const total = c.pedidos?.reduce((s,p)=>s+Number(p.total_pesos||0),0)||0;
+        return `<div class="cliente">
+          <div class="c-avatar">${c.nombre[0].toUpperCase()}</div>
+          <div class="c-info"><div class="c-nombre">${c.nombre}</div><div class="c-meta">${c.colonia||'—'} · ${c.telefono||'sin tel'}</div></div>
+          <div class="c-stats"><div class="c-total">${fmt(total)}</div><div class="c-pedidos">${c.pedidos?.length||0} pedido${c.pedidos?.length!==1?'s':''}</div></div>
+        </div>`;
+      }).join('')
+    : '<div class="empty">Sin clientes registrados</div>';
+}
+
+// ═══════════════════════════════════════════════════
+// RECETAS
+// ═══════════════════════════════════════════════════
+function recetasTab(tab) {
+  document.getElementById('rsub-consolidadas').style.display = tab === 'consolidadas' ? '' : 'none';
+  document.getElementById('rsub-laboratorio').style.display  = tab === 'laboratorio'  ? '' : 'none';
+  document.getElementById('rt-consolidadas').classList.toggle('active', tab === 'consolidadas');
+  document.getElementById('rt-laboratorio').classList.toggle('active', tab === 'laboratorio');
+  const btn = document.getElementById('btn-receta-action');
+  if (btn) btn.textContent = tab === 'laboratorio' ? '+ Nueva receta' : '+ Nueva receta';
+  if (tab === 'consolidadas') loadRecetas();
+  if (tab === 'laboratorio') loadBorradores();
+}
+
+function recetaAction() {
+  const labActive = document.getElementById('rt-laboratorio').classList.contains('active');
+  if (labActive) nuevoBorrador();
+  else document.getElementById('modal-receta').classList.add('open');
+}
+
+async function loadRecetas() {
+  const recetas = await sb('recetas?select=*,usda_query,receta_plan(id,proteina_g,arroz_g,verdura_g,precio_kit,costo_marinado,macros_calculados,kcal_real,proteina_real_g,carbs_real_g,grasa_real_g,planes(nombre))&activa=eq.true&order=id');
+  ST.recetasList = recetas;
+  document.getElementById('lista-recetas').innerHTML = recetas.map((r, i) => `
+    <div class="rcard${i===0?' selected':''}" id="rc-${r.id}" onclick="selectReceta(${r.id})">
+      <div class="rcard-name">${r.nombre}</div>
+      <div class="rcard-meta"><span>${r.proteina_tipo}</span><span>${r.activa?'● Activa':'○ Inactiva'}</span></div>
+    </div>`).join('');
+  if (recetas.length) selectReceta(recetas[0].id);
+}
+
+// Fetches macros per 100g from USDA for a given query
+async function fetchUSDAMacros(query) {
+  const url = `https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(query)}&pageSize=1&api_key=${USDA_KEY}`;
+  const r = await fetch(url);
+  const d = await r.json();
+  const f = d.foods?.[0];
+  if (!f) return null;
+  const get = n => f.foodNutrients?.find(x => x.nutrientName === n)?.value || 0;
+  return {
+    kcal: get('Energy'),
+    prot: get('Protein'),
+    carbs: get('Carbohydrate, by difference'),
+    fat: get('Total lipid (fat)')
+  };
+}
+
+// Calculate real macros from USDA data for a given gram weight
+function applyUSDA(usda, grams) {
+  if (!usda) return null;
+  const factor = grams / 100;
+  return {
+    prot:  Math.round(usda.prot  * factor * 10) / 10,
+    carbs: Math.round(usda.carbs * factor * 10) / 10,
+    fat:   Math.round(usda.fat   * factor * 10) / 10,
+    kcal:  Math.round(usda.kcal  * factor)
+  };
+}
+
+async function selectReceta(id) {
+  document.querySelectorAll('.rcard').forEach(c => c.classList.remove('selected'));
+  document.getElementById('rc-' + id)?.classList.add('selected');
+  const r = ST.recetasList?.find(x => x.id === id);
+  if (!r) return;
+  document.getElementById('receta-titulo').textContent = r.nombre;
+  // Check if macros are already saved in DB
+  const todosCalculados = r.receta_plan.every(p => p.macros_calculados);
+
+  let rows;
+  let fuenteLabel;
+
+  if (todosCalculados) {
+    // Use saved macros from Supabase — no USDA call needed
+    fuenteLabel = 'Macros guardadas en Supabase · Usa "Calcular macros USDA" para recalcular';
+    rows = r.receta_plan.map(p => ({
+      planNombre:  p.planes?.nombre || '—',
+      protG:       Number(p.proteina_g),
+      arrozG:      Number(p.arroz_g),
+      verdG:       Number(p.verdura_g),
+      precio:      p.precio_kit,
+      totalProt:   Number(p.proteina_real_g)  || 0,
+      totalCarbs:  Number(p.carbs_real_g)     || 0,
+      totalFat:    Number(p.grasa_real_g)     || 0,
+      totalKcal:   Number(p.kcal_real)        || 0,
+    }));
+  } else {
+    // Fetch live from USDA
+    document.getElementById('receta-detalle').innerHTML = `
+      <div style="padding:20px;text-align:center;color:var(--gray-500)">
+        Consultando USDA... (usa el botón "Calcular macros USDA" para guardarlos en Supabase)
+      </div>`;
+
+    let ingredients = [];
+    try { ingredients = await sb(`ingredientes_receta?receta_id=eq.${r.id}&select=nombre,tipo,usda_query`); } catch(e) {}
+
+    const protIngr = ingredients.find(i => i.tipo === 'proteina');
+    const carbIngr = ingredients.find(i => i.tipo === 'carb');
+    const verdIngr = ingredients.find(i => i.tipo === 'verdura');
+
+    const protQuery = protIngr?.usda_query || r.usda_query || (r.proteina_tipo === 'res' ? 'beef round eye raw' : 'chicken breast skinless raw');
+    const carbQuery = carbIngr?.usda_query || 'white rice cooked';
+    const verdQuery = verdIngr?.usda_query || 'mixed vegetables cooked';
+
+    fuenteLabel = `Macros en tiempo real desde USDA · ${protQuery} / ${carbQuery} / ${verdQuery}`;
+
+    let usdaProt = null, usdaCarb = null, usdaVerd = null;
+    try {
+      [usdaProt, usdaCarb, usdaVerd] = await Promise.all([
+        fetchUSDAMacros(protQuery),
+        fetchUSDAMacros(carbQuery),
+        fetchUSDAMacros(verdQuery)
+      ]);
+    } catch(e) { console.error('USDA fetch error:', e); }
+
+    rows = r.receta_plan.map(p => {
+      const protG = Number(p.proteina_g), arrozG = Number(p.arroz_g), verdG = Number(p.verdura_g);
+      const mProt = applyUSDA(usdaProt, protG);
+      const mCarb = applyUSDA(usdaCarb, arrozG);
+      const mVerd = applyUSDA(usdaVerd, verdG);
+      const grasaMarinado = 5;
+      const totalProt  = Math.round((mProt?.prot||0)  + (mCarb?.prot||0)  + (mVerd?.prot||0));
+      const totalCarbs = Math.round((mProt?.carbs||0) + (mCarb?.carbs||0) + (mVerd?.carbs||0));
+      const totalFat   = Math.round((mProt?.fat||0)   + (mCarb?.fat||0)   + (mVerd?.fat||0) + grasaMarinado);
+      const totalKcal  = Math.round(totalProt * 4 + totalCarbs * 4 + totalFat * 9);
+      return { planNombre: p.planes?.nombre||'—', protG, arrozG, verdG, precio: p.precio_kit, totalProt, totalCarbs, totalFat, totalKcal };
+    });
+  }
+
+  const maxKcal = Math.max(...rows.map(r => r.totalKcal));
+
+  document.getElementById('receta-detalle').innerHTML = `
+    <div style="font-size:11px;color:var(--gray-500);margin-bottom:12px;padding:6px 10px;background:var(--green-l);border-radius:6px">
+      ${fuenteLabel}
+    </div>
+    <table class="macros-table">
+      <thead><tr><th>Plan</th><th>Peso prot.</th><th>Prot. real</th><th>Carbs</th><th>Grasa</th><th>Kcal</th><th>Precio</th></tr></thead>
+      <tbody>${rows.map(row => `<tr>
+        <td><strong>${row.planNombre}</strong></td>
+        <td style="font-size:12px;color:var(--gray-500)">${row.protG}g crudo</td>
+        <td><div class="bar-wrap"><div class="bar"><div class="bar-fill bar-p" style="width:${Math.round(row.totalProt/60*100)}%"></div></div><span style="font-size:12px">${row.totalProt}g</span></div></td>
+        <td><div class="bar-wrap"><div class="bar"><div class="bar-fill bar-c" style="width:${Math.round(row.totalCarbs/60*100)}%"></div></div><span style="font-size:12px">${row.totalCarbs}g</span></div></td>
+        <td style="font-size:12px">${row.totalFat}g</td>
+        <td><strong style="color:var(--amber)">${row.totalKcal}</strong></td>
+        <td><strong>$${row.precio}</strong></td>
+      </tr>`).join('')}</tbody>
+    </table>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px">
+      ${rows.map(row => `<div style="background:var(--gray-100);border-radius:8px;padding:10px 12px;font-size:12px">
+        <div style="font-weight:600;font-size:11px;color:var(--gray-500);text-transform:uppercase;margin-bottom:6px">${row.planNombre}</div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--green-d)">Proteína</span><span>${row.totalProt}g</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--amber)">Carbs</span><span>${row.totalCarbs}g</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--blue)">Grasa</span><span>${row.totalFat}g</span></div>
+          <div style="border-top:1px solid var(--gray-300);margin-top:4px;padding-top:4px;display:flex;justify-content:space-between;font-weight:600">
+            <span>Kcal</span><span style="color:var(--amber)">${row.totalKcal}</span>
+          </div>
+        </div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--gray-300)">
+          <div style="font-size:10px;color:var(--gray-500);margin-bottom:4px">Distribución</div>
+          <div style="display:flex;height:6px;border-radius:3px;overflow:hidden;gap:1px">
+            <div style="background:var(--green);width:${Math.round(row.totalProt*4/row.totalKcal*100)}%"></div>
+            <div style="background:var(--amber);width:${Math.round(row.totalCarbs*4/row.totalKcal*100)}%"></div>
+            <div style="background:var(--blue);width:${Math.round(row.totalFat*9/row.totalKcal*100)}%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--gray-500);margin-top:3px">
+            <span>${Math.round(row.totalProt*4/row.totalKcal*100)}% P</span>
+            <span>${Math.round(row.totalCarbs*4/row.totalKcal*100)}% C</span>
+            <span>${Math.round(row.totalFat*9/row.totalKcal*100)}% G</span>
+          </div>
+        </div>
+      </div>`).join('')}
+    </div>
+    <div style="margin-top:12px;font-size:11px;color:var(--gray-500);line-height:1.6">
+      Solo lectura · Macros calculadas en tiempo real desde USDA FoodData Central
+    </div>`;
+}
+
+
+// ═══════════════════════════════════════════════════
+// CALCULAR Y GUARDAR MACROS DESDE USDA
+// ═══════════════════════════════════════════════════
+async function calcularTodosMacros() {
+  const btn = document.getElementById('btn-calc-macros');
+  if (!btn) return;
+  btn.textContent = 'Calculando...';
+  btn.disabled = true;
+
+  try {
+    // Traer todas las recetas con sus planes e ingredientes
+    const recetas = await sb('recetas?select=id,nombre,proteina_tipo,usda_query,receta_plan(id,plan_id,proteina_g,arroz_g,verdura_g)&activa=eq.true');
+    const ingredientes = await sb('ingredientes_receta?select=receta_id,tipo,usda_query');
+
+    let totalActualizados = 0;
+    const errores = [];
+
+    for (const receta of recetas) {
+      // Determinar queries USDA para esta receta
+      const ingrs = ingredientes.filter(i => i.receta_id === receta.id);
+      const protIngr = ingrs.find(i => i.tipo === 'proteina');
+      const carbIngr = ingrs.find(i => i.tipo === 'carb');
+      const verdIngr = ingrs.find(i => i.tipo === 'verdura');
+
+      const protQuery = protIngr?.usda_query || receta.usda_query || (receta.proteina_tipo === 'res' ? 'beef round eye raw' : 'chicken breast skinless raw');
+      const carbQuery = carbIngr?.usda_query || 'white rice cooked';
+      const verdQuery = verdIngr?.usda_query || 'mixed vegetables cooked';
+
+      btn.textContent = `Consultando: ${receta.nombre}...`;
+
+      // Fetch USDA para los 3 ingredientes en paralelo
+      let usdaProt, usdaCarb, usdaVerd;
+      try {
+        [usdaProt, usdaCarb, usdaVerd] = await Promise.all([
+          fetchUSDAMacros(protQuery),
+          fetchUSDAMacros(carbQuery),
+          fetchUSDAMacros(verdQuery)
+        ]);
+      } catch(e) {
+        errores.push(`${receta.nombre}: error consultando USDA`);
+        continue;
+      }
+
+      if (!usdaProt || !usdaCarb || !usdaVerd) {
+        errores.push(`${receta.nombre}: no se encontraron resultados en USDA`);
+        continue;
+      }
+
+      // Calcular y guardar macros para cada plan
+      for (const rp of receta.receta_plan) {
+        const protG = Number(rp.proteina_g);
+        const arrozG = Number(rp.arroz_g);
+        const verdG = Number(rp.verdura_g);
+        const grasaMarinado = 5; // ~5g de grasa del marinado
+
+        // Macros reales aplicando proporción por gramos
+        const mProt  = applyUSDA(usdaProt, protG);
+        const mCarb  = applyUSDA(usdaCarb, arrozG);
+        const mVerd  = applyUSDA(usdaVerd, verdG);
+
+        const proteina_real = Math.round((mProt.prot + mCarb.prot + mVerd.prot) * 10) / 10;
+        const carbs_real    = Math.round((mProt.carbs + mCarb.carbs + mVerd.carbs) * 10) / 10;
+        const grasa_real    = Math.round((mProt.fat + mCarb.fat + mVerd.fat + grasaMarinado) * 10) / 10;
+        const kcal_real     = Math.round(proteina_real * 4 + carbs_real * 4 + grasa_real * 9);
+
+        // Guardar en Supabase
+        try {
+          await sb(`receta_plan?id=eq.${rp.id}`, {
+            method: 'PATCH',
+            prefer: 'return=minimal',
+            body: {
+              proteina_real_g: proteina_real,
+              carbs_real_g:    carbs_real,
+              grasa_real_g:    grasa_real,
+              kcal_real:       kcal_real,
+              macros_calculados: true
+            }
+          });
+          totalActualizados++;
+        } catch(e) {
+          errores.push(`${receta.nombre} plan ${rp.plan_id}: error guardando`);
+        }
+      }
+    }
+
+    // Resultado
+    if (errores.length === 0) {
+      btn.textContent = `✓ ${totalActualizados} planes actualizados`;
+      btn.style.background = 'var(--green-l)';
+      btn.style.color = 'var(--green-d)';
+      btn.style.border = '1px solid var(--green-m)';
+    } else {
+      btn.textContent = `✓ ${totalActualizados} ok · ${errores.length} errores`;
+      btn.style.background = '#FEF3C7';
+      btn.style.color = '#92400E';
+    }
+    btn.disabled = false;
+
+    // Recargar recetas para mostrar macros actualizados
+    if (ST.recetasList?.length) await loadRecetas();
+
+    setTimeout(() => {
+      btn.textContent = 'Calcular macros USDA';
+      btn.style.background = '';
+      btn.style.color = '';
+      btn.style.border = '';
+    }, 4000);
+
+  } catch(e) {
+    console.error('calcularTodosMacros:', e);
+    btn.textContent = 'Error — intenta de nuevo';
+    btn.disabled = false;
+    setTimeout(() => btn.textContent = 'Calcular macros USDA', 3000);
+  }
+}
+
+async function guardarNuevaReceta() {
+  const nombre = document.getElementById('nr-nombre').value.trim();
+  if (!nombre) return alert('Escribe el nombre');
+  const tipo = document.getElementById('nr-proteina').value;
+  const [rec] = await sb('recetas', { method:'POST', body:{ nombre, proteina_tipo:tipo, activa:true } });
+  const planes = await sb('planes?select=id&order=id');
+  const precios = [+document.getElementById('nr-cp').value||0, +document.getElementById('nr-mant').value||0, +document.getElementById('nr-am').value||0];
+  const gp = [{proteina_g:180,arroz_g:125,verdura_g:130},{proteina_g:225,arroz_g:157,verdura_g:130},{proteina_g:270,arroz_g:190,verdura_g:130}];
+  for (let i = 0; i < Math.min(planes.length, 3); i++) {
+    const [rp] = await sb('receta_plan', { method:'POST', body:{ receta_id:rec.id, plan_id:planes[i].id, ...gp[i], precio_kit:precios[i] } });
+    for (const [tp, pct] of [['individual',1],['paquete_3',3*0.95],['paquete_5',5*0.9]])
+      await sb('paquetes', { method:'POST', body:{ receta_plan_id:rp.id, tipo_paquete:tp, precio_venta:Math.round(precios[i]*pct) } });
+  }
+  cerrarModal('modal-receta');
+  ST.clientes = []; // reset catalog
+  await loadRecetas();
+}
+
+// LABORATORIO
+async function loadBorradores() {
+  const b = await sb('recetas_borrador?estado=eq.borrador&order=created_at.desc');
+  ST.borradores = b;
+  document.getElementById('lista-borradores').innerHTML = b.length
+    ? b.map(x => `<div class="rcard" id="brc-${x.id}" onclick="selectBorrador(${x.id})">
+        <div class="rcard-name">${x.nombre}</div>
+        <div class="rcard-meta"><span>${x.proteina_tipo||'—'}</span>${x.usda_nombre?'<span style="color:var(--green-d)">● USDA</span>':'<span>○ Sin USDA</span>'}</div>
+      </div>`).join('')
+    : '<div class="muted" style="padding:8px 0">Sin borradores. Crea el primero.</div>';
+}
+
+function selectBorrador(id) {
+  document.querySelectorAll('.rcard').forEach(c => c.classList.remove('selected'));
+  document.getElementById('brc-' + id)?.classList.add('selected');
+  const b = ST.borradores.find(x => x.id === id);
+  if (!b) return;
+  ST.borradorActivo = b;
+  ST.usdaSelected = b.usda_nombre ? { name:b.usda_nombre, kcal:b.usda_kcal, prot:b.usda_proteina_g, carb:b.usda_carb_g, fat:b.usda_grasa_g } : null;
+  document.getElementById('lab-titulo').textContent = b.nombre;
+  document.getElementById('lab-editor').innerHTML = labFormHTML(b);
+}
+
+function nuevoBorrador() {
+  ST.borradorActivo = null; ST.usdaSelected = null;
+  document.querySelectorAll('.rcard').forEach(c => c.classList.remove('selected'));
+  document.getElementById('lab-titulo').textContent = 'Nueva receta experimental';
+  document.getElementById('lab-editor').innerHTML = labFormHTML(null);
+}
+
+function labFormHTML(b) {
+  const planes = [['cp','Control de peso',b?.cp_proteina_g||180,b?.cp_arroz_g||125,b?.cp_verdura_g||130,b?.cp_precio||0],['mant','Mantenimiento',b?.mant_proteina_g||225,b?.mant_arroz_g||157,b?.mant_verdura_g||130,b?.mant_precio||0],['am','Aumento de masa',b?.am_proteina_g||270,b?.am_arroz_g||190,b?.am_verdura_g||130,b?.am_precio||0]];
+  return `
+    <div class="form-grid mb-14">
+      <div class="fg"><label>Nombre</label><input type="text" id="bd-nombre" value="${b?.nombre||''}" placeholder="Ej: Salmón Mediterráneo"></div>
+      <div class="fg"><label>Proteína</label><select id="bd-proteina">${['pollo','res','salmon','atun','otro'].map(t=>`<option${b?.proteina_tipo===t?' selected':''}>${t}</option>`).join('')}</select></div>
+      <div class="fg full"><label>Notas / ideas</label><textarea id="bd-notas" placeholder="Ingredientes, inspiración...">${b?.notas||''}</textarea></div>
+    </div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:8px">Buscar en USDA</div>
+    <div class="search-row"><input type="text" id="usda-q" placeholder="chicken breast, salmon..." onkeydown="if(event.key==='Enter')buscarUSDA()"><button class="btn btn-primary" onclick="buscarUSDA()">Buscar</button></div>
+    <div id="usda-res"></div>
+    <div id="usda-sel">${b?.usda_nombre?`<div class="usda-sel"><div class="usda-sel-name">${b.usda_nombre}</div><div class="usda-sel-macros"><span>Prot: ${b.usda_proteina_g}g</span><span>Carbs: ${b.usda_carb_g}g</span><span>Kcal: ${b.usda_kcal}</span></div></div>`:''}</div>
+    <div style="font-size:13px;font-weight:600;margin:14px 0 10px">Gramos por plan</div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr><th style="text-align:left;padding:5px 8px;color:var(--gray-500)">Plan</th><th style="padding:5px 4px;color:var(--gray-500)">Prot g</th><th style="padding:5px 4px;color:var(--gray-500)">Arroz g</th><th style="padding:5px 4px;color:var(--gray-500)">Verd g</th><th style="padding:5px 4px;color:var(--gray-500)">Precio</th><th style="padding:5px 4px;color:var(--amber)">Kcal</th></tr></thead>
+      <tbody>${planes.map(([pfx,label,prot,arroz,verd,precio])=>{
+        const kcal=calcKcal(prot,arroz,verd);
+        return `<tr><td style="padding:4px 8px;font-weight:500">${label}</td><td style="padding:3px 4px"><input type="number" id="bd-${pfx}-p" value="${prot}" oninput="recalcLab()" style="width:58px;padding:4px 6px;font-size:12px;border:1px solid var(--gray-300);border-radius:6px;font-family:inherit"></td><td style="padding:3px 4px"><input type="number" id="bd-${pfx}-a" value="${arroz}" oninput="recalcLab()" style="width:58px;padding:4px 6px;font-size:12px;border:1px solid var(--gray-300);border-radius:6px;font-family:inherit"></td><td style="padding:3px 4px"><input type="number" id="bd-${pfx}-v" value="${verd}" oninput="recalcLab()" style="width:58px;padding:4px 6px;font-size:12px;border:1px solid var(--gray-300);border-radius:6px;font-family:inherit"></td><td style="padding:3px 4px"><input type="number" id="bd-${pfx}-pr" value="${precio}" style="width:58px;padding:4px 6px;font-size:12px;border:1px solid var(--gray-300);border-radius:6px;font-family:inherit"></td><td id="bd-${pfx}-kcal" style="padding:4px 8px;font-weight:600;color:var(--amber)">${kcal}</td></tr>`;
+      }).join('')}</tbody>
+    </table>
+    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+      <button class="btn btn-secondary" onclick="guardarBorrador()">Guardar borrador</button>
+      ${b?`<button class="btn btn-primary" onclick="consolidar(${b.id})">Pasar a Consolidadas →</button>`:''}
+      ${b?`<button class="btn" style="background:#FEF2F2;color:#991B1B;border:1px solid #FECACA" onclick="eliminarBorrador(${b.id})">Eliminar</button>`:''}
+    </div>`;
+}
+
+function recalcLab() {
+  for (const pfx of ['cp','mant','am']) {
+    const p=+document.getElementById(`bd-${pfx}-p`)?.value||0;
+    const a=+document.getElementById(`bd-${pfx}-a`)?.value||0;
+    const v=+document.getElementById(`bd-${pfx}-v`)?.value||0;
+    const el=document.getElementById(`bd-${pfx}-kcal`);
+    if(el) el.textContent=calcKcal(p,a,v);
+  }
+}
+
+async function buscarUSDA() {
+  const q=document.getElementById('usda-q').value.trim();
+  if(!q)return;
+  document.getElementById('usda-res').innerHTML='<div class="muted" style="padding:8px">Buscando...</div>';
+  try {
+    const r=await fetch(`https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(q)}&pageSize=6&api_key=${USDA_KEY}`);
+    const d=await r.json();
+    if(!d.foods?.length){document.getElementById('usda-res').innerHTML='<div class="muted" style="padding:8px">Sin resultados</div>';return;}
+    const get=(f,n)=>f.foodNutrients?.find(x=>x.nutrientName===n)?.value||0;
+    document.getElementById('usda-res').innerHTML=`<div class="usda-results">${d.foods.map(f=>{
+      const item={name:f.description,kcal:get(f,'Energy'),prot:get(f,'Protein'),carb:get(f,'Carbohydrate, by difference'),fat:get(f,'Total lipid (fat)')};
+      return `<div class="usda-item" onclick='elegirUSDA(${JSON.stringify(item).replace(/'/g,"&#39;")})'>
+        <div class="usda-item-name">${f.description}</div>
+        <div class="usda-item-cal">${item.kcal}kcal · ${item.prot}g prot · ${item.carb}g carbs / 100g</div>
+      </div>`;
+    }).join('')}</div>`;
+  } catch(e){document.getElementById('usda-res').innerHTML='<div class="muted" style="padding:8px">Error al buscar</div>';}
+}
+
+function elegirUSDA(item) {
+  ST.usdaSelected=item;
+  document.getElementById('usda-res').innerHTML='';
+  document.getElementById('usda-sel').innerHTML=`<div class="usda-sel"><div class="usda-sel-name">${item.name}</div><div class="usda-sel-macros"><span>Prot: ${item.prot}g</span><span>Carbs: ${item.carb}g</span><span>Grasa: ${item.fat}g</span><span>${item.kcal} kcal / 100g</span></div></div>`;
+}
+
+async function guardarBorrador() {
+  const nombre=document.getElementById('bd-nombre').value.trim();
+  if(!nombre)return alert('Escribe el nombre');
+  const u=ST.usdaSelected;
+  const body={nombre,proteina_tipo:document.getElementById('bd-proteina').value,notas:document.getElementById('bd-notas')?.value||'',usda_nombre:u?.name||null,usda_kcal:u?.kcal||null,usda_proteina_g:u?.prot||null,usda_carb_g:u?.carb||null,usda_grasa_g:u?.fat||null,cp_proteina_g:+document.getElementById('bd-cp-p').value,cp_arroz_g:+document.getElementById('bd-cp-a').value,cp_verdura_g:+document.getElementById('bd-cp-v').value,cp_precio:+document.getElementById('bd-cp-pr').value,mant_proteina_g:+document.getElementById('bd-mant-p').value,mant_arroz_g:+document.getElementById('bd-mant-a').value,mant_verdura_g:+document.getElementById('bd-mant-v').value,mant_precio:+document.getElementById('bd-mant-pr').value,am_proteina_g:+document.getElementById('bd-am-p').value,am_arroz_g:+document.getElementById('bd-am-a').value,am_verdura_g:+document.getElementById('bd-am-v').value,am_precio:+document.getElementById('bd-am-pr').value};
+  if(ST.borradorActivo) await sb(`recetas_borrador?id=eq.${ST.borradorActivo.id}`,{method:'PATCH',body,prefer:'return=minimal'});
+  else { const[n]=await sb('recetas_borrador',{method:'POST',body}); ST.borradorActivo=n; }
+  await loadBorradores();
+  const btn=document.querySelector('#lab-editor .btn-secondary');
+  if(btn){btn.textContent='✓ Guardado';setTimeout(()=>btn.textContent='Guardar borrador',1500);}
+}
+
+async function consolidar(bId) {
+  const b=ST.borradores.find(x=>x.id===bId);
+  if(!b||!confirm(`¿Pasar "${b.nombre}" a Consolidadas?`))return;
+  const[rec]=await sb('recetas',{method:'POST',body:{nombre:b.nombre,proteina_tipo:b.proteina_tipo,activa:true}});
+  const planes=await sb('planes?select=id&order=id');
+  const pd=[{prot:b.cp_proteina_g,arroz:b.cp_arroz_g,verd:b.cp_verdura_g,precio:b.cp_precio},{prot:b.mant_proteina_g,arroz:b.mant_arroz_g,verd:b.mant_verdura_g,precio:b.mant_precio},{prot:b.am_proteina_g,arroz:b.am_arroz_g,verd:b.am_verdura_g,precio:b.am_precio}];
+  for(let i=0;i<Math.min(planes.length,3);i++){
+    const[rp]=await sb('receta_plan',{method:'POST',body:{receta_id:rec.id,plan_id:planes[i].id,proteina_g:pd[i].prot,arroz_g:pd[i].arroz,verdura_g:pd[i].verd,precio_kit:pd[i].precio}});
+    for(const[tp,pct]of[['individual',1],['paquete_3',3*0.95],['paquete_5',5*0.9]])
+      await sb('paquetes',{method:'POST',body:{receta_plan_id:rp.id,tipo_paquete:tp,precio_venta:Math.round(pd[i].precio*pct)}});
+  }
+  await sb(`recetas_borrador?id=eq.${bId}`,{method:'PATCH',body:{estado:'consolidada'},prefer:'return=minimal'});
+  ST.clientes=[];
+  await loadBorradores();
+  document.getElementById('lab-editor').innerHTML='<div style="padding:16px;color:var(--green-d)">✓ Receta consolidada. Aparece en la pestaña Consolidadas.</div>';
+}
+
+async function eliminarBorrador(id) {
+  if(!confirm('¿Eliminar este borrador?'))return;
+  await sb(`recetas_borrador?id=eq.${id}`,{method:'DELETE',prefer:'return=minimal'});
+  ST.borradorActivo=null;
+  await loadBorradores();
+  document.getElementById('lab-editor').innerHTML='<div class="empty">Selecciona o crea un borrador</div>';
+}
+
+// ═══════════════════════════════════════════════════
+// FINANZAS
+// ═══════════════════════════════════════════════════
+async function loadFinanzas() {
+  try {
+    const [pedidos, costos, empaque] = await Promise.all([
+      sb('pedidos?select=*,detalle_pedido(tipo_paquete,receta_plan(proteina_g,arroz_g,verdura_g,recetas(proteina_tipo)),paquetes_mix(kits_pollo,kits_res))&estado=neq.cancelled&order=semana.desc'),
+      sb('costos_ingredientes?select=nombre,precio_kg_actual,tipo'),
+      sb('empaque?select=tipo_paquete,total')
+    ]);
+    const c={};costos.forEach(x=>c[x.nombre]=Number(x.precio_kg_actual));
+    const emp={};empaque.forEach(x=>emp[x.tipo_paquete]=Number(x.total));
+    function costoKit(tipo_prot,prot,arroz,verd){
+      const kgProt=tipo_prot==='res'?(c['Res pulpa blanca']||259):(c['Pollo']||195);
+      const mar=tipo_prot==='res'?12:8;
+      return (prot/1000)*kgProt*1.12+(arroz/1000)*(c['Arroz cocido']||42)*1.12+(verd/1000)*40*1.12+mar;
+    }
+    function empPor(t){return t?.includes('5')?(emp['paquete_5']||67):t?.includes('3')?(emp['paquete_3']||46):(emp['individual']||30);}
+    let totI=0,totC=0,totP=0;
+    const bySem={};
+    pedidos.forEach(p=>{
+      const ing=Number(p.total_pesos||0); totI+=ing; totP++;
+      const w=p.semana; if(!bySem[w])bySem[w]={sem:w,p:0,i:0,c:0};
+      bySem[w].p++;bySem[w].i+=ing;
+      const d=p.detalle_pedido?.[0]; if(!d)return;
+      const t=d.tipo_paquete; const esMix=t?.startsWith('mix');
+      let ck=0;
+      if(esMix){const kp=d.paquetes_mix?.kits_pollo||2;const kr=d.paquetes_mix?.kits_res||1;const rp=d.receta_plan;ck=kp*costoKit('pollo',rp?.proteina_g||200,rp?.arroz_g||140,rp?.verdura_g||130)+kr*costoKit('res',rp?.proteina_g||200,rp?.arroz_g||140,rp?.verdura_g||100);}
+      else{const rp=d.receta_plan;const tp=rp?.recetas?.proteina_tipo||'pollo';const k=t?.includes('5')?5:t?.includes('3')?3:1;ck=k*costoKit(tp,rp?.proteina_g||200,rp?.arroz_g||140,rp?.verdura_g||130);}
+      const ec=empPor(t); const ct=ck+ec; bySem[w].c+=ct; totC+=ct;
+    });
+    const totM=totI-totC; const mp=totI>0?Math.round(totM/totI*100):0;
+    document.getElementById('f-ingresos').textContent=fmt(totI);
+    document.getElementById('f-semanas').textContent=Object.keys(bySem).length+' semanas';
+    document.getElementById('f-costo').textContent=fmt(Math.round(totC));
+    document.getElementById('f-margen-pct').textContent=mp+'%';
+    document.getElementById('f-margen-mxn').textContent=fmt(Math.round(totM))+' MXN';
+    document.getElementById('f-ticket').textContent=fmt(totP?Math.round(totI/totP):0);
+    // Tabla semanas
+    const semRows=Object.values(bySem).sort((a,b)=>b.sem.localeCompare(a.sem)).map(w=>{
+      const mg=w.i-w.c; const mp2=w.i>0?Math.round(mg/w.i*100):0;
+      const col=mp2>=40?'var(--green-d)':mp2>=25?'var(--amber)':'var(--red)';
+      return `<tr><td style="font-size:12px">${fmtDate(w.sem)}</td><td style="text-align:center">${w.p}</td><td><strong>${fmt(w.i)}</strong></td><td class="muted">${fmt(Math.round(w.c))}</td><td><span style="font-weight:600;color:${col}">${mp2}%</span> <span class="muted">(${fmt(Math.round(mg))})</span></td></tr>`;
+    });
+    document.getElementById('fin-semanas').innerHTML=semRows.join('')||'<tr><td colspan="5" class="empty" style="padding:16px">Sin datos</td></tr>';
+    // Tabla margenes por receta
+    const recetas=await sb('recetas?select=*,receta_plan(proteina_g,arroz_g,verdura_g,precio_kit,planes(nombre))&activa=eq.true&order=id');
+    const marRows=[];
+    recetas.forEach(r=>r.receta_plan.forEach(rp=>{
+      const ck=costoKit(r.proteina_tipo,Number(rp.proteina_g),Number(rp.arroz_g),Number(rp.verdura_g));
+      const empc=emp['individual']||30; const ct=ck+empc; const pv=Number(rp.precio_kit); const mg=pv-ct; const mp2=pv>0?Math.round(mg/pv*100):0;
+      const col=mp2>=40?'var(--green-d)':mp2>=25?'var(--amber)':'var(--red)';
+      marRows.push(`<tr><td><strong>${r.nombre}</strong></td><td style="font-size:12px">${rp.planes?.nombre||'—'}</td><td>${fmt(pv)}</td><td class="muted">${fmt(Math.round(ct))}</td><td><span style="font-weight:600;color:${col}">${mp2}%</span> <span class="muted">${fmt(Math.round(mg))}</span></td></tr>`);
+    }));
+    document.getElementById('fin-margenes').innerHTML=marRows.join('')||'<tr><td colspan="5" class="empty" style="padding:16px">Sin datos</td></tr>';
+  } catch(e){console.error('finanzas:',e);}
+}
+
+// ═══════════════════════════════════════════════════
+// ROADMAP
+// ═══════════════════════════════════════════════════
+async function loadRoadmap() {
+  const tasks=await sb(`roadmap_tasks?area=eq.${ST.roadmapArea}&order=created_at.desc`);
+  ['por_hacer','en_progreso','listo'].forEach(col=>{
+    const t=tasks.filter(x=>x.estado===col);
+    document.getElementById('cnt-'+col).textContent=t.length;
+    const priCol={alta:'var(--red)',media:'var(--amber)',baja:'var(--gray-300)'};
+    const estados=['por_hacer','en_progreso','listo'];
+    document.getElementById('col-'+col).innerHTML=t.map(x=>{
+      const idx=estados.indexOf(x.estado);
+      return `<div class="task">
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:5px"><div style="width:8px;height:8px;border-radius:50%;background:${priCol[x.prioridad]||'var(--gray-300)'}"></div><div class="task-title">${x.titulo}</div></div>
+        ${x.descripcion?`<div class="task-desc">${x.descripcion}</div>`:''}
+        ${x.fecha_limite?`<div class="muted" style="margin-bottom:6px">↳ ${fmtDate(x.fecha_limite)}</div>`:''}
+        <div class="task-footer"><div style="display:flex;gap:3px">
+          ${idx>0?`<button class="tbtn" onclick="moverTask(${x.id},'${estados[idx-1]}')">←</button>`:''}
+          ${idx<2?`<button class="tbtn" onclick="moverTask(${x.id},'${estados[idx+1]}')">→</button>`:''}
+          <button class="tbtn del" onclick="eliminarTask(${x.id})">✕</button>
+        </div></div>
+      </div>`;
+    }).join('');
+  });
+}
+
+async function moverTask(id,estado){await sb(`roadmap_tasks?id=eq.${id}`,{method:'PATCH',body:{estado},prefer:'return=minimal'});await loadRoadmap();}
+async function eliminarTask(id){if(!confirm('¿Eliminar?'))return;await sb(`roadmap_tasks?id=eq.${id}`,{method:'DELETE',prefer:'return=minimal'});await loadRoadmap();}
+
+function abrirTask(estado){ST.taskEstado=estado;['task-titulo','task-desc','task-fecha'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});document.getElementById('task-prio').value='media';document.getElementById('modal-task').classList.add('open');}
+
+async function guardarTask(){
+  const titulo=document.getElementById('task-titulo').value.trim();
+  if(!titulo)return alert('Escribe el título');
+  await sb('roadmap_tasks',{method:'POST',body:{area:ST.roadmapArea,titulo,descripcion:document.getElementById('task-desc').value.trim(),estado:ST.taskEstado,prioridad:document.getElementById('task-prio').value,fecha_limite:document.getElementById('task-fecha').value||null}});
+  cerrarModal('modal-task');
+  await loadRoadmap();
+}
+
+function switchArea(area,el){
+  ST.roadmapArea=area;
+  document.querySelectorAll('.area-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  loadRoadmap();
+}
+
+// Click fuera del modal lo cierra
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+
+// INIT
+checkAuth();
+</script>
+</body>
+</html>
