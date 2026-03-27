@@ -1,0 +1,1874 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Essential Plate OS</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
+
+  :root {
+    --green: #7AB648;
+    --green-dark: #5a9030;
+    --green-light: #EAF3DE;
+    --green-mid: #C0DD97;
+    --gray-900: #1a1a1a;
+    --gray-700: #3d3d3d;
+    --gray-500: #6b6b6b;
+    --gray-300: #d4d4d4;
+    --gray-100: #f5f5f5;
+    --white: #ffffff;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --blue: #3b82f6;
+    --sidebar-w: 220px;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--gray-100);
+    color: var(--gray-900);
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+    font-size: 14px;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--white);
+    border-right: 1px solid var(--gray-300);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    padding: 24px 0;
+  }
+
+  .logo {
+    padding: 0 20px 24px;
+    border-bottom: 1px solid var(--gray-100);
+    margin-bottom: 16px;
+  }
+  .logo-mark {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: var(--green);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .logo-icon svg { width: 18px; height: 18px; fill: white; }
+  .logo-name { font-size: 15px; font-weight: 600; color: var(--gray-900); letter-spacing: -0.3px; }
+  .logo-sub { font-size: 11px; color: var(--gray-500); margin-top: 1px; }
+
+  .nav-section { padding: 0 12px; margin-bottom: 8px; }
+  .nav-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--gray-500); padding: 0 8px; margin-bottom: 4px; }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px; border-radius: 8px;
+    cursor: pointer; color: var(--gray-700);
+    font-size: 13px; font-weight: 400;
+    transition: all .15s; margin-bottom: 2px;
+    border: none; background: none; width: 100%; text-align: left;
+  }
+  .nav-item:hover { background: var(--gray-100); color: var(--gray-900); }
+  .nav-item.active { background: var(--green-light); color: var(--green-dark); font-weight: 500; }
+  .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.7; }
+  .nav-item.active svg { opacity: 1; }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 16px 20px 0;
+    border-top: 1px solid var(--gray-100);
+  }
+  .week-badge {
+    background: var(--green-light);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+  .week-badge .label { color: var(--gray-500); margin-bottom: 2px; }
+  .week-badge .value { color: var(--green-dark); font-weight: 600; font-size: 13px; }
+
+  /* ── MAIN ── */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  .topbar {
+    background: var(--white);
+    border-bottom: 1px solid var(--gray-300);
+    padding: 0 28px;
+    height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .page-title { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+  .topbar-actions { display: flex; gap: 8px; align-items: center; }
+
+  .btn {
+    padding: 8px 16px; border-radius: 8px; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500; cursor: pointer; border: none;
+    transition: all .15s; display: flex; align-items: center; gap: 6px;
+  }
+  .btn-primary { background: var(--green); color: white; }
+  .btn-primary:hover { background: var(--green-dark); }
+  .btn-secondary { background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); }
+  .btn-secondary:hover { background: var(--gray-300); }
+  .btn-sm { padding: 5px 11px; font-size: 12px; }
+  .btn-ghost { background: none; color: var(--gray-500); padding: 6px 8px; }
+  .btn-ghost:hover { background: var(--gray-100); color: var(--gray-900); }
+
+  .content { flex: 1; overflow-y: auto; padding: 24px 28px; }
+
+  /* ── TABS / PAGES ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid var(--gray-300);
+    box-shadow: var(--shadow);
+  }
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--gray-100);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-title { font-size: 14px; font-weight: 600; }
+  .card-body { padding: 20px; }
+
+  /* ── INICIO ── */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .stat-card {
+    background: var(--white); border-radius: var(--radius);
+    border: 1px solid var(--gray-300); padding: 16px 18px;
+  }
+  .stat-label { font-size: 11px; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .stat-value { font-size: 26px; font-weight: 600; letter-spacing: -1px; color: var(--gray-900); }
+  .stat-sub { font-size: 11px; color: var(--gray-500); margin-top: 3px; }
+  .stat-green { border-left: 3px solid var(--green); }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* ── PEDIDOS ── */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 12px; font-weight: 500; color: var(--gray-700); }
+  input, select, textarea {
+    padding: 8px 12px; border: 1px solid var(--gray-300); border-radius: 8px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--gray-900);
+    background: var(--white); outline: none; transition: border .15s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(122,182,72,0.1); }
+  textarea { resize: vertical; min-height: 70px; }
+
+  .table { width: 100%; border-collapse: collapse; }
+  .table th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-500); padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--gray-100); }
+  .table td { padding: 11px 14px; border-bottom: 1px solid var(--gray-100); font-size: 13px; color: var(--gray-700); }
+  .table tr:last-child td { border-bottom: none; }
+  .table tr:hover td { background: var(--gray-100); }
+
+  .badge {
+    display: inline-flex; align-items: center;
+    padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 500;
+  }
+  .badge-green { background: var(--green-light); color: var(--green-dark); }
+  .badge-amber { background: #FEF3C7; color: #92400E; }
+  .badge-blue { background: #EFF6FF; color: #1D4ED8; }
+  .badge-gray { background: var(--gray-100); color: var(--gray-500); }
+  .badge-red { background: #FEF2F2; color: #991B1B; }
+
+  /* ── RECETAS ── */
+  .recetas-layout { display: grid; grid-template-columns: 1fr 1.4fr; gap: 20px; align-items: start; }
+
+  .receta-card {
+    border: 1.5px solid var(--gray-300); border-radius: var(--radius);
+    padding: 16px; cursor: pointer; transition: all .15s; margin-bottom: 10px;
+    background: var(--white);
+  }
+  .receta-card:hover { border-color: var(--green); }
+  .receta-card.selected { border-color: var(--green); background: var(--green-light); }
+  .receta-nombre { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .receta-meta { font-size: 12px; color: var(--gray-500); display: flex; gap: 10px; }
+
+  .macros-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  .macros-table th { font-size: 11px; color: var(--gray-500); padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--gray-200); }
+  .macros-table td { padding: 8px 10px; font-size: 13px; border-bottom: 1px solid var(--gray-100); }
+  .macros-table tr:last-child td { border-bottom: none; }
+
+  .macro-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .macro-bar { height: 5px; border-radius: 3px; background: var(--gray-200); flex: 1; overflow: hidden; }
+  .macro-bar-fill { height: 100%; border-radius: 3px; }
+  .bar-prot { background: var(--green); }
+  .bar-carb { background: var(--amber); }
+  .bar-verd { background: #60a5fa; }
+
+  /* USDA search */
+  .usda-section { margin-top: 20px; }
+  .search-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .search-row input { flex: 1; }
+  .usda-results { border: 1px solid var(--gray-300); border-radius: 8px; overflow: hidden; max-height: 220px; overflow-y: auto; }
+  .usda-item { padding: 10px 14px; border-bottom: 1px solid var(--gray-100); cursor: pointer; transition: background .1s; }
+  .usda-item:hover { background: var(--green-light); }
+  .usda-item:last-child { border-bottom: none; }
+  .usda-item-name { font-size: 13px; font-weight: 500; }
+  .usda-item-cal { font-size: 11px; color: var(--gray-500); margin-top: 2px; }
+  .usda-selected { background: var(--green-light); border: 1.5px solid var(--green); border-radius: 8px; padding: 12px 14px; margin-bottom: 12px; }
+  .usda-selected-name { font-size: 13px; font-weight: 600; color: var(--green-dark); }
+  .usda-macros { display: flex; gap: 16px; margin-top: 6px; font-size: 12px; color: var(--gray-600); }
+
+  /* NUEVA RECETA FORM */
+  .nueva-receta-steps { display: flex; gap: 6px; margin-bottom: 20px; }
+  .step-pill { padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; background: var(--gray-100); color: var(--gray-500); }
+  .step-pill.active { background: var(--green); color: white; }
+  .step-pill.done { background: var(--green-light); color: var(--green-dark); }
+
+  /* ── ROADMAP KANBAN ── */
+  .area-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .area-tab { padding: 7px 16px; border-radius: 20px; border: 1.5px solid var(--gray-300); background: var(--white); font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; color: var(--gray-700); }
+  .area-tab:hover { border-color: var(--green); color: var(--green-dark); }
+  .area-tab.active { background: var(--green); border-color: var(--green); color: white; }
+
+  .kanban { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .kanban-col { background: var(--gray-100); border-radius: var(--radius); padding: 14px; min-height: 400px; }
+  .kanban-col-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .kanban-col-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-500); }
+  .kanban-count { background: var(--gray-300); color: var(--gray-700); border-radius: 20px; padding: 1px 8px; font-size: 11px; font-weight: 600; }
+
+  .task-card {
+    background: var(--white); border-radius: 8px; padding: 12px 14px;
+    margin-bottom: 8px; border: 1px solid var(--gray-300);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05); cursor: grab;
+    transition: box-shadow .15s;
+  }
+  .task-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .task-title { font-size: 13px; font-weight: 500; color: var(--gray-900); margin-bottom: 6px; }
+  .task-desc { font-size: 12px; color: var(--gray-500); line-height: 1.5; margin-bottom: 8px; }
+  .task-footer { display: flex; align-items: center; justify-content: space-between; }
+  .task-actions { display: flex; gap: 4px; }
+  .task-btn { background: none; border: none; cursor: pointer; padding: 3px 5px; border-radius: 4px; color: var(--gray-400); font-size: 11px; transition: all .1s; }
+  .task-btn:hover { background: var(--gray-100); color: var(--gray-700); }
+  .task-btn.del:hover { background: #FEF2F2; color: var(--red); }
+
+  .add-task-btn {
+    width: 100%; padding: 8px; border: 1.5px dashed var(--gray-300);
+    border-radius: 8px; background: none; color: var(--gray-500);
+    font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer;
+    transition: all .15s; margin-top: 4px;
+  }
+  .add-task-btn:hover { border-color: var(--green); color: var(--green-dark); background: var(--green-light); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100; opacity: 0; pointer-events: none; transition: opacity .2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--white); border-radius: 16px; padding: 24px;
+    width: 460px; max-width: 95vw; max-height: 90vh; overflow-y: auto;
+    transform: translateY(8px); transition: transform .2s;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  .modal-title { font-size: 16px; font-weight: 600; }
+  .modal-close { background: none; border: none; cursor: pointer; font-size: 20px; color: var(--gray-500); padding: 2px 6px; border-radius: 4px; }
+  .modal-close:hover { background: var(--gray-100); }
+
+  /* ── CLIENTES ── */
+  .cliente-card {
+    background: var(--white); border: 1px solid var(--gray-300);
+    border-radius: var(--radius); padding: 16px 18px; margin-bottom: 10px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .cliente-avatar {
+    width: 38px; height: 38px; border-radius: 50%; background: var(--green-light);
+    color: var(--green-dark); display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 14px; flex-shrink: 0;
+  }
+  .cliente-info { flex: 1; margin-left: 14px; }
+  .cliente-nombre { font-size: 14px; font-weight: 600; }
+  .cliente-meta { font-size: 12px; color: var(--gray-500); margin-top: 2px; }
+  .cliente-stats { text-align: right; }
+  .cliente-total { font-size: 15px; font-weight: 600; color: var(--green-dark); }
+  .cliente-pedidos { font-size: 11px; color: var(--gray-500); }
+
+  .empty-state { text-align: center; padding: 48px 20px; color: var(--gray-500); }
+  .empty-state .icon { font-size: 32px; margin-bottom: 12px; opacity: 0.4; }
+  .empty-icon { width: 48px; height: 48px; margin: 0 auto 12px; opacity: 0.3; }
+  .empty-state p { font-size: 13px; }
+
+  /* loading */
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin .6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .divider { height: 1px; background: var(--gray-100); margin: 16px 0; }
+  .text-muted { color: var(--gray-500); font-size: 12px; }
+  .mt-12 { margin-top: 12px; }
+  .mb-16 { margin-bottom: 16px; }
+  .flex-between { display: flex; align-items: center; justify-content: space-between; }
+
+  /* ── LOGIN ── */
+  .login-overlay {
+    position: fixed; inset: 0;
+    background: #f5f5f5;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999;
+  }
+  .login-card {
+    background: white;
+    border-radius: 20px;
+    padding: 48px 44px;
+    width: 380px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.10);
+    border: 1px solid var(--gray-300);
+    text-align: center;
+  }
+  .login-logo {
+    width: 52px; height: 52px;
+    background: var(--green);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+  }
+  .login-logo svg { width: 28px; height: 28px; fill: white; }
+  .login-title { font-size: 22px; font-weight: 600; margin-bottom: 6px; letter-spacing: -0.5px; }
+  .login-sub { font-size: 13px; color: var(--gray-500); margin-bottom: 32px; }
+  .login-input {
+    width: 100%; padding: 12px 16px;
+    border: 1.5px solid var(--gray-300); border-radius: 10px;
+    font-family: 'DM Sans', sans-serif; font-size: 15px;
+    outline: none; text-align: center; letter-spacing: 3px;
+    margin-bottom: 14px; transition: border .15s;
+  }
+  .login-input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(122,182,72,0.12); }
+  .login-btn {
+    width: 100%; padding: 12px;
+    background: var(--green); color: white;
+    border: none; border-radius: 10px;
+    font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500;
+    cursor: pointer; transition: background .15s;
+  }
+  .login-btn:hover { background: var(--green-dark); }
+  .login-error {
+    color: #dc2626; font-size: 12px; margin-top: 10px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-overlay" id="login-overlay">
+  <div class="login-card">
+    <div class="login-logo">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+    </div>
+    <div class="login-title">Essential Plate OS</div>
+    <div class="login-sub">Panel operativo · Solo para Marco</div>
+    <input
+      class="login-input"
+      type="password"
+      id="login-password"
+      placeholder="Contraseña"
+      onkeydown="if(event.key==='Enter')checkLogin()"
+      autocomplete="current-password"
+    >
+    <button class="login-btn" onclick="checkLogin()">Entrar</button>
+    <div class="login-error" id="login-error">Contraseña incorrecta</div>
+  </div>
+</div>
+
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-mark">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+      </div>
+      <div>
+        <div class="logo-name">Essential Plate</div>
+        <div class="logo-sub">Panel operativo</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Principal</div>
+    <button class="nav-item active" onclick="showPage('inicio')">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      Inicio
+    </button>
+    <button class="nav-item" onclick="showPage('pedidos')">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
+      Pedidos
+    </button>
+    <button class="nav-item" onclick="showPage('clientes')">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+      Clientes
+    </button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Producto</div>
+    <button class="nav-item" onclick="showPage('recetas'); showRecetasTab('consolidadas')">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26 1.44 1.42 2.43 2.89 2.43 5.29v8.05zM1 21.99V21h15.03v.99c0 .55-.45 1-1.01 1H2.01c-.56 0-1.01-.45-1.01-1zm15.03-7c0-8-15.03-8-15.03 0h15.03zM1.02 17h15v2H1.02z"/></svg>
+      Recetas
+    </button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Estrategia</div>
+    <button class="nav-item" onclick="showPage('finanzas'); loadFinanzas()">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+      Finanzas
+    </button>
+    <button class="nav-item" onclick="showPage('roadmap'); loadRoadmap()">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+      Roadmaps
+    </button>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="week-badge">
+      <div class="label">Semana activa</div>
+      <div class="value" id="week-label">—</div>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="page-title" id="page-title">Inicio</div>
+    <div class="topbar-actions" id="topbar-actions"></div>
+  </div>
+
+  <div class="content">
+
+    <!-- ── INICIO ── -->
+    <div id="page-inicio" class="page active">
+      <div class="stats-grid">
+        <div class="stat-card stat-green">
+          <div class="stat-label">Kits esta semana</div>
+          <div class="stat-value" id="stat-kits">—</div>
+          <div class="stat-sub">pedidos confirmados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Ingresos</div>
+          <div class="stat-value" id="stat-ingresos">—</div>
+          <div class="stat-sub">esta semana</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Clientes activos</div>
+          <div class="stat-value" id="stat-clientes">—</div>
+          <div class="stat-sub">total registrados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Recetas activas</div>
+          <div class="stat-value" id="stat-recetas">—</div>
+          <div class="stat-sub">en catálogo</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Pedidos de la semana</div>
+            <button class="btn btn-sm btn-secondary" onclick="showPage('pedidos')">Ver todos</button>
+          </div>
+          <div class="card-body" id="inicio-pedidos">
+            <div class="text-muted">Cargando...</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Resumen por receta</div>
+          </div>
+          <div class="card-body" id="inicio-recetas-resumen">
+            <div class="text-muted">Cargando...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PEDIDOS ── -->
+    <div id="page-pedidos" class="page">
+      <div class="card mb-16" id="form-pedido-card">
+        <div class="card-header">
+          <div class="card-title">Nuevo pedido</div>
+          <button class="btn-ghost btn" onclick="toggleForm()">Colapsar</button>
+        </div>
+        <div class="card-body" id="form-pedido-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Cliente</label>
+              <select id="p-cliente" onchange="onClienteChange()">
+                <option value="">Seleccionar cliente...</option>
+                <option value="nuevo">+ Nuevo cliente</option>
+              </select>
+            </div>
+            <div class="form-group" id="grupo-nombre-nuevo" style="display:none">
+              <label>Nombre del cliente</label>
+              <input type="text" id="p-nombre-nuevo" placeholder="Nombre completo">
+            </div>
+            <div class="form-group">
+              <label>Plan nutricional</label>
+              <select id="p-plan" onchange="loadPaquetes()">
+                <option value="">Seleccionar plan...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Tipo de paquete</label>
+              <select id="p-tipo" onchange="onTipoChange()">
+                <option value="">Seleccionar tipo...</option>
+                <option value="individual">Individual — 1 kit</option>
+                <option value="paquete_3">Paquete — 3 kits</option>
+                <option value="paquete_5">Paquete — 5 kits</option>
+                <option value="mix_3">Mix — 3 kits (2 pollo + 1 res)</option>
+                <option value="mix_5">Mix — 5 kits (3 pollo + 2 res)</option>
+              </select>
+            </div>
+            <div class="form-group" id="grupo-receta">
+              <label>Receta</label>
+              <select id="p-receta" onchange="loadPaquetes()">
+                <option value="">Seleccionar receta...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Estado</label>
+              <select id="p-estado">
+                <option value="recibido">Recibido</option>
+                <option value="confirmado">Confirmado</option>
+                <option value="producido">Producido</option>
+                <option value="entregado">Entregado</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label>Notas (opcional)</label>
+              <textarea id="p-notas" placeholder="Dirección, instrucciones especiales..."></textarea>
+            </div>
+          </div>
+          <div id="precio-preview-card" style="display:none;background:var(--green-light);border:1.5px solid var(--green-mid);border-radius:10px;padding:12px 16px;margin-bottom:14px;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-size:11px;color:var(--green-dark);font-weight:600;text-transform:uppercase;letter-spacing:0.5px">Total del pedido</div>
+              <div id="precio-preview-valor" style="font-size:24px;font-weight:600;color:var(--green-dark);letter-spacing:-0.5px">—</div>
+            </div>
+            <div id="precio-preview-detalle" style="font-size:12px;color:var(--green-dark);text-align:right;line-height:1.6"></div>
+          </div>
+          <button class="btn btn-primary" onclick="guardarPedido()">Guardar pedido</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Pedidos — semana actual</div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Receta</th>
+                <th>Plan</th>
+                <th>Paquete</th>
+                <th>Total</th>
+                <th>Estado</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tabla-pedidos">
+              <tr><td colspan="7" class="text-muted" style="padding:20px;text-align:center">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CLIENTES ── -->
+    <div id="page-clientes" class="page">
+      <div id="lista-clientes">
+        <div class="text-muted">Cargando...</div>
+      </div>
+    </div>
+
+    <!-- ── RECETAS ── -->
+    <div id="page-recetas" class="page">
+
+      <!-- Sub-tabs -->
+      <div style="display:flex;gap:4px;background:var(--gray-100);padding:4px;border-radius:10px;width:fit-content;margin-bottom:20px">
+        <button id="rtab-consolidadas" onclick="showRecetasTab('consolidadas')" style="padding:7px 20px;border-radius:7px;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:var(--white);color:var(--gray-900);box-shadow:0 1px 3px rgba(0,0,0,0.08)">Consolidadas</button>
+        <button id="rtab-laboratorio" onclick="showRecetasTab('laboratorio')" style="padding:7px 20px;border-radius:7px;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--gray-500)">Laboratorio</button>
+      </div>
+
+      <!-- Tab: Consolidadas -->
+      <div id="rsub-consolidadas">
+        <div class="recetas-layout">
+          <div>
+            <div id="lista-recetas"><div class="text-muted">Cargando...</div></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title" id="receta-detalle-titulo">Selecciona una receta</div>
+            </div>
+            <div class="card-body" id="receta-detalle-body">
+              <div class="empty-state"><div class="text-muted">Elige una receta de la lista para ver sus macros</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Laboratorio -->
+      <div id="rsub-laboratorio" style="display:none">
+        <div class="recetas-layout">
+          <!-- Lista de borradores -->
+          <div>
+            <div id="lista-borradores"><div class="text-muted">Cargando...</div></div>
+          </div>
+          <!-- Editor de borrador -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title" id="borrador-titulo">Nueva receta en borrador</div>
+              <button class="btn btn-sm btn-primary" onclick="openNuevoBorrador()">+ Nueva</button>
+            </div>
+            <div class="card-body" id="borrador-editor">
+              <div class="empty-state"><div class="text-muted">Crea una nueva receta o selecciona un borrador existente</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── FINANZAS ── -->
+    <div id="page-finanzas" class="page">
+
+      <!-- KPI row -->
+      <div class="stats-grid" style="margin-bottom:20px">
+        <div class="stat-card stat-green">
+          <div class="stat-label">Ingresos totales</div>
+          <div class="stat-value" id="fin-ingresos-total">—</div>
+          <div class="stat-sub" id="fin-semanas-label">histórico</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Costo ingredientes</div>
+          <div class="stat-value" id="fin-costo-total">—</div>
+          <div class="stat-sub">estimado</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Margen bruto</div>
+          <div class="stat-value" id="fin-margen-pct">—</div>
+          <div class="stat-sub" id="fin-margen-pesos">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Ticket promedio</div>
+          <div class="stat-value" id="fin-ticket">—</div>
+          <div class="stat-sub">por pedido</div>
+        </div>
+      </div>
+
+      <div class="two-col" style="margin-bottom:20px">
+        <!-- Historial semanal -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Ingresos por semana</div>
+          </div>
+          <div class="card-body" style="padding:0">
+            <table class="table" id="fin-tabla-semanas">
+              <thead>
+                <tr>
+                  <th>Semana</th>
+                  <th>Pedidos</th>
+                  <th>Ingresos</th>
+                  <th>Costo est.</th>
+                  <th>Margen</th>
+                </tr>
+              </thead>
+              <tbody id="fin-semanas-body">
+                <tr><td colspan="5" style="padding:20px;text-align:center;color:var(--gray-500)">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Desglose de costos por ingrediente -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Costo por kit (promedio)</div>
+            <div style="font-size:11px;color:var(--gray-500)">basado en tus ingredientes</div>
+          </div>
+          <div class="card-body" id="fin-costos-body">
+            <div class="text-muted">Cargando...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Margen por receta -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Margen por receta y plan</div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Receta</th>
+                <th>Plan</th>
+                <th>Precio venta</th>
+                <th>Costo ingr. est.</th>
+                <th>Empaque</th>
+                <th>Costo total</th>
+                <th>Margen $</th>
+                <th>Margen %</th>
+              </tr>
+            </thead>
+            <tbody id="fin-margenes-body">
+              <tr><td colspan="8" style="padding:20px;text-align:center;color:var(--gray-500)">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── ROADMAP ── -->
+    <div id="page-roadmap" class="page">
+      <div class="area-tabs">
+        <button class="area-tab active" onclick="switchArea('marketing',this)">Marketing</button>
+        <button class="area-tab" onclick="switchArea('estrategia',this)">Estrategia</button>
+        <button class="area-tab" onclick="switchArea('operaciones',this)">Operaciones</button>
+        <button class="area-tab" onclick="switchArea('recetas',this)">Recetas</button>
+      </div>
+      <div class="kanban">
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <div class="kanban-col-title">Por hacer</div>
+            <span class="kanban-count" id="cnt-por_hacer">0</span>
+          </div>
+          <div id="col-por_hacer"></div>
+          <button class="add-task-btn" onclick="openTaskModal('por_hacer')">+ Agregar tarea</button>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <div class="kanban-col-title">En progreso</div>
+            <span class="kanban-count" id="cnt-en_progreso">0</span>
+          </div>
+          <div id="col-en_progreso"></div>
+          <button class="add-task-btn" onclick="openTaskModal('en_progreso')">+ Agregar tarea</button>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <div class="kanban-col-title">Listo</div>
+            <span class="kanban-count" id="cnt-listo">0</span>
+          </div>
+          <div id="col-listo"></div>
+          <button class="add-task-btn" onclick="openTaskModal('listo')">+ Agregar tarea</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- MODAL NUEVA TAREA -->
+<div class="modal-overlay" id="modal-task">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Nueva tarea</div>
+      <button class="modal-close" onclick="closeModal('modal-task')">×</button>
+    </div>
+    <div class="form-group mb-16">
+      <label>Título</label>
+      <input type="text" id="task-titulo" placeholder="¿Qué hay que hacer?">
+    </div>
+    <div class="form-group mb-16">
+      <label>Descripción (opcional)</label>
+      <textarea id="task-desc" placeholder="Contexto, detalles, links..."></textarea>
+    </div>
+    <div class="form-grid" style="margin-bottom:16px">
+      <div class="form-group">
+        <label>Prioridad</label>
+        <select id="task-prioridad">
+          <option value="alta">Alta</option>
+          <option value="media" selected>Media</option>
+          <option value="baja">Baja</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Fecha límite (opcional)</label>
+        <input type="date" id="task-fecha">
+      </div>
+    </div>
+    <button class="btn btn-primary" style="width:100%" onclick="guardarTask()">Guardar tarea</button>
+  </div>
+</div>
+
+<!-- MODAL NUEVA RECETA -->
+<div class="modal-overlay" id="modal-receta">
+  <div class="modal" style="width:520px">
+    <div class="modal-header">
+      <div class="modal-title">Nueva receta</div>
+      <button class="modal-close" onclick="closeModal('modal-receta')">×</button>
+    </div>
+    <div class="form-grid mb-16">
+      <div class="form-group">
+        <label>Nombre de la receta</label>
+        <input type="text" id="nr-nombre" placeholder="Ej: Salmón Teriyaki">
+      </div>
+      <div class="form-group">
+        <label>Tipo de proteína</label>
+        <select id="nr-proteina">
+          <option value="pollo">Pollo</option>
+          <option value="res">Res</option>
+          <option value="salmon">Salmón</option>
+          <option value="atun">Atún</option>
+          <option value="cerdo">Cerdo</option>
+          <option value="otro">Otro</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:10px">Buscar ingrediente principal en USDA</div>
+
+    <div class="search-row">
+      <input type="text" id="usda-query" placeholder="Ej: chicken breast, white rice..." onkeydown="if(event.key==='Enter')buscarUSDA()">
+      <button class="btn btn-primary" onclick="buscarUSDA()">Buscar</button>
+    </div>
+    <div id="usda-results-container"></div>
+    <div id="usda-selected-display"></div>
+
+    <div class="divider"></div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:12px">Precio del kit por plan</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+      <div class="form-group">
+        <label>Control de peso</label>
+        <input type="number" id="nr-precio-cp" placeholder="$0">
+      </div>
+      <div class="form-group">
+        <label>Mantenimiento</label>
+        <input type="number" id="nr-precio-mant" placeholder="$0">
+      </div>
+      <div class="form-group">
+        <label>Aumento de masa</label>
+        <input type="number" id="nr-precio-am" placeholder="$0">
+      </div>
+    </div>
+    <button class="btn btn-primary" style="width:100%" onclick="guardarReceta()">Crear receta</button>
+  </div>
+</div>
+
+<script>
+// ══ CONFIG ══════════════════════════════════════════════════
+const SUPABASE_URL = 'https://wdaqctevstiskkfkxytb.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkYXFjdGV2c3Rpc2trZmt4eXRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NDA1MjUsImV4cCI6MjA4OTUxNjUyNX0.x6GwWIahn26GyYu8LjKs3XKcFe-gGgc-Zh0SIOA460g';
+const USDA_KEY    = 'SgfM4irGgMFlePbkAiOegmzoCvTs35obc0pWaaj0';
+
+// ══ SUPABASE HELPER ══════════════════════════════════════════
+async function sb(path, opts={}) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': opts.prefer || 'return=representation',
+      ...opts.headers
+    },
+    method: opts.method || 'GET',
+    body: opts.body ? JSON.stringify(opts.body) : undefined
+  });
+  if (!r.ok) { const e = await r.json(); throw new Error(e.message || r.statusText); }
+  if (r.status === 204) return [];
+  return r.json();
+}
+
+// ══ ESTADO GLOBAL ════════════════════════════════════════════
+let state = {
+  clientes: [], recetas: [], planes: [], paquetes: [],
+  pedidos: [], roadmapArea: 'marketing', pendingTaskEstado: 'por_hacer',
+  usdaSelected: null
+};
+
+// ══ NAV ══════════════════════════════════════════════════════
+const PAGE_TITLES = { inicio:'Inicio', pedidos:'Pedidos', clientes:'Clientes', recetas:'Recetas', finanzas:'Finanzas', roadmap:'Roadmaps' };
+const PAGE_ACTIONS = {
+  pedidos: `<button class="btn btn-primary btn-sm" onclick="scrollToForm()">+ Nuevo pedido</button>`,
+  recetas: `<button class="btn btn-primary btn-sm" id="btn-recetas-action" onclick="recetasActionClick()">+ Nueva receta</button>`,
+  clientes: `<button class="btn btn-primary btn-sm" onclick="alert('Próximamente')">+ Nuevo cliente</button>`,
+  roadmap: `<button class="btn btn-primary btn-sm" onclick="openTaskModal(state.pendingTaskEstado)">+ Nueva tarea</button>`
+};
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => { if(n.getAttribute('onclick')?.includes("'"+id+"'")) n.classList.add('active'); });
+  document.getElementById('page-title').textContent = PAGE_TITLES[id] || '';
+  document.getElementById('topbar-actions').innerHTML = PAGE_ACTIONS[id] || '';
+  if(id==='pedidos') loadPedidosPage();
+  if(id==='clientes') loadClientes();
+  if(id==='recetas') { showRecetasTab(state.recetasTab || 'consolidadas'); }
+}
+
+// ══ SEMANA ═══════════════════════════════════════════════════
+function getNextSunday() {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = day === 0 ? 7 : 7 - day;
+  d.setDate(d.getDate() + diff);
+  return d.toISOString().split('T')[0];
+}
+function getCurrentWeekMonday() {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  return d.toISOString().split('T')[0];
+}
+
+// ══ INICIO ═══════════════════════════════════════════════════
+async function loadInicio() {
+  const sunday = getNextSunday();
+  document.getElementById('week-label').textContent = formatDate(sunday);
+
+  try {
+    const [clientes, recetas, pedidos] = await Promise.all([
+      sb('clientes?select=id'),
+      sb('recetas?select=id&activa=eq.true'),
+      sb(`pedidos?semana=eq.${sunday}&select=*,clientes(nombre),detalle_pedido(*)`)
+    ]);
+
+    document.getElementById('stat-clientes').textContent = clientes.length;
+    document.getElementById('stat-recetas').textContent = recetas.length;
+
+    const totalKits = pedidos.reduce((s,p) => s + (p.detalle_pedido?.reduce((ds,d)=>ds+d.cantidad,0)||0), 0);
+    const totalPesos = pedidos.reduce((s,p) => s + Number(p.total_pesos||0), 0);
+    document.getElementById('stat-kits').textContent = totalKits;
+    document.getElementById('stat-ingresos').textContent = '$'+totalPesos.toLocaleString('es-MX');
+
+    const pedidosHTML = pedidos.length === 0
+      ? '<div class="text-muted" style="text-align:center;padding:20px">Sin pedidos esta semana</div>'
+      : pedidos.map(p => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--gray-100)">
+          <div>
+            <div style="font-size:13px;font-weight:500">${p.clientes?.nombre||'—'}</div>
+            <div class="text-muted">$${Number(p.total_pesos||0).toLocaleString('es-MX')}</div>
+          </div>
+          ${estadoBadge(p.estado)}
+        </div>`).join('');
+    document.getElementById('inicio-pedidos').innerHTML = pedidosHTML || '<div class="text-muted">Sin pedidos</div>';
+
+    state.pedidos = pedidos;
+  } catch(e) { console.error(e); }
+}
+
+// ══ PEDIDOS ══════════════════════════════════════════════════
+async function loadPedidosPage() {
+  await loadCatalog();
+  await loadPedidosTabla();
+}
+
+async function loadCatalog() {
+  if(state.clientes.length && state.recetas.length) return;
+  const [clientes, recetas, planes, paquetes, paquetesMix] = await Promise.all([
+    sb('clientes?select=id,nombre&activo=eq.true&order=nombre'),
+    sb('recetas?select=id,nombre&activa=eq.true&order=nombre'),
+    sb('planes?select=id,nombre&order=id'),
+    sb('paquetes?select=id,tipo_paquete,precio_venta,receta_plan_id,receta_plan(receta_id,plan_id)'),
+    sb('paquetes_mix?select=id,tipo_mix,plan_id,kits_pollo,kits_res,precio_venta')
+  ]);
+  state.clientes = clientes; state.recetas = recetas;
+  state.planes = planes; state.paquetes = paquetes; state.paquetesMix = paquetesMix;
+
+  const selCliente = document.getElementById('p-cliente');
+  clientes.forEach(c => {
+    const o = document.createElement('option'); o.value=c.id; o.textContent=c.nombre;
+    selCliente.insertBefore(o, selCliente.lastElementChild);
+  });
+  const selReceta = document.getElementById('p-receta');
+  recetas.forEach(r => { const o=document.createElement('option'); o.value=r.id; o.textContent=r.nombre; selReceta.appendChild(o); });
+  const selPlan = document.getElementById('p-plan');
+  planes.forEach(p => { const o=document.createElement('option'); o.value=p.id; o.textContent=p.nombre; selPlan.appendChild(o); });
+}
+
+function onTipoChange() {
+  const tipo = document.getElementById('p-tipo').value;
+  const esMix = tipo === 'mix_3' || tipo === 'mix_5';
+  const grupoReceta = document.getElementById('grupo-receta');
+  if(grupoReceta) grupoReceta.style.display = esMix ? 'none' : '';
+  loadPaquetes();
+}
+
+function loadPaquetes() {
+  const tipo = document.getElementById('p-tipo')?.value || '';
+  const planId = document.getElementById('p-plan').value;
+  const esMix = tipo === 'mix_3' || tipo === 'mix_5';
+  hidePrecioPreview();
+
+  if(!planId || !tipo) return;
+
+  if(esMix) {
+    // Buscar en paquetes_mix
+    const mix = (state.paquetesMix||[]).find(m => m.plan_id == planId && m.tipo_mix === tipo);
+    if(mix) showPrecioPreview(mix.precio_venta, tipo, null, mix);
+    state.selectedPaquete = null;
+    state.selectedMix = mix || null;
+  } else {
+    const recId = document.getElementById('p-receta').value;
+    if(!recId) return;
+    const matching = (state.paquetes||[]).filter(p => p.receta_plan?.receta_id==recId && p.receta_plan?.plan_id==planId && p.tipo_paquete===tipo);
+    const p = matching[0];
+    if(p) {
+      const receta = state.recetas.find(r=>r.id==recId);
+      showPrecioPreview(p.precio_venta, tipo, receta?.nombre, null);
+    }
+    state.selectedPaquete = p || null;
+    state.selectedMix = null;
+  }
+}
+
+function showPrecioPreview(precio, tipo, recetaNombre, mix) {
+  const card = document.getElementById('precio-preview-card');
+  const val = document.getElementById('precio-preview-valor');
+  const det = document.getElementById('precio-preview-detalle');
+  if(!card) return;
+  card.style.display = 'flex';
+  val.textContent = '$' + Number(precio).toLocaleString('es-MX') + ' MXN';
+  const tipoLabel = {individual:'1 kit',paquete_3:'3 kits',paquete_5:'5 kits',mix_3:'Mix 3 kits',mix_5:'Mix 5 kits'}[tipo]||tipo;
+  if(mix) {
+    det.innerHTML = tipoLabel + '<br>' + mix.kits_pollo + ' Pollo + ' + mix.kits_res + ' Res';
+  } else {
+    det.innerHTML = tipoLabel + (recetaNombre ? '<br>' + recetaNombre : '');
+  }
+}
+
+function hidePrecioPreview() {
+  const card = document.getElementById('precio-preview-card');
+  if(card) card.style.display = 'none';
+}
+
+function onClienteChange() {
+  const v = document.getElementById('p-cliente').value;
+  document.getElementById('grupo-nombre-nuevo').style.display = v==='nuevo' ? 'block' : 'none';
+}
+
+async function guardarPedido() {
+  const clienteId = document.getElementById('p-cliente').value;
+  const nuevoNombre = document.getElementById('p-nombre-nuevo').value.trim();
+  const planId = document.getElementById('p-plan').value;
+  const tipo = document.getElementById('p-tipo').value;
+  const estado = document.getElementById('p-estado').value;
+  const notas = document.getElementById('p-notas').value.trim();
+  const esMix = tipo === 'mix_3' || tipo === 'mix_5';
+
+  if(!planId || !tipo) return alert('Selecciona plan y tipo de paquete');
+
+  let precio = 0;
+  let tipoPaquete = tipo;
+  let recetaPlanId = null;
+  let paqueteMixId = null;
+
+  if(esMix) {
+    if(!state.selectedMix) return alert('No se encontró el paquete mix para ese plan');
+    precio = state.selectedMix.precio_venta;
+    paqueteMixId = state.selectedMix.id;
+  } else {
+    if(!state.selectedPaquete) return alert('Selecciona receta y verifica que exista ese paquete');
+    precio = state.selectedPaquete.precio_venta;
+    recetaPlanId = state.selectedPaquete.receta_plan_id;
+  }
+
+  const sunday = getNextSunday();
+  let finalClienteId = clienteId;
+  if(clienteId==='nuevo') {
+    if(!nuevoNombre) return alert('Escribe el nombre del cliente');
+    const [nc] = await sb('clientes', { method:'POST', body:{nombre:nuevoNombre,telefono:'',activo:true} });
+    finalClienteId = nc.id;
+    state.clientes.push(nc);
+  }
+  if(!finalClienteId) return alert('Selecciona un cliente');
+
+  const [pedido] = await sb('pedidos', { method:'POST', body:{ cliente_id:finalClienteId, semana:sunday, estado, total_pesos:precio, notas } });
+  await sb('detalle_pedido', { method:'POST', body:{
+    pedido_id: pedido.id,
+    tipo_paquete: tipoPaquete,
+    cantidad: 1,
+    precio_unitario: precio,
+    receta_plan_id: recetaPlanId,
+    paquete_mix_id: paqueteMixId
+  }});
+
+  // Reset form
+  document.getElementById('p-cliente').value='';
+  document.getElementById('p-plan').value='';
+  document.getElementById('p-tipo').value='';
+  document.getElementById('p-receta').value='';
+  document.getElementById('p-notas').value='';
+  document.getElementById('grupo-nombre-nuevo').style.display='none';
+  document.getElementById('grupo-receta').style.display='';
+  hidePrecioPreview();
+  state.selectedPaquete = null;
+  state.selectedMix = null;
+
+  await loadPedidosTabla();
+}
+
+async function loadPedidosTabla() {
+  const sunday = getNextSunday();
+  const pedidos = await sb(`pedidos?semana=eq.${sunday}&select=*,clientes(nombre),detalle_pedido(tipo_paquete,precio_unitario,receta_plan(recetas(nombre),planes(nombre)),paquetes_mix(tipo_mix,kits_pollo,kits_res,planes(nombre)))&order=created_at.desc`);
+
+  const eClass = {recibido:'badge-gray',confirmado:'badge-blue',producido:'badge-amber',entregado:'badge-green'};
+  const eLabel = {recibido:'Recibido',confirmado:'Confirmado',producido:'Producido',entregado:'Entregado'};
+  const tipoLabel = {individual:'1 kit',paquete_3:'3 kits',paquete_5:'5 kits',mix_3:'Mix 3',mix_5:'Mix 5'};
+
+  // Totales resumen
+  const totalKits = pedidos.reduce((s,p)=>s+(p.detalle_pedido?.[0]?.tipo_paquete?.includes('5')?5:p.detalle_pedido?.[0]?.tipo_paquete?.includes('3')?3:1),0);
+  const totalPesos = pedidos.reduce((s,p)=>s+Number(p.total_pesos||0),0);
+
+  document.getElementById('tabla-pedidos').innerHTML = pedidos.length===0
+    ? `<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--gray-500)">Sin pedidos para esta semana</td></tr>`
+    : pedidos.map(p => {
+      const d = p.detalle_pedido?.[0];
+      const esMix = d?.tipo_paquete?.startsWith('mix');
+      const recetaNombre = esMix ? 'Mix' : (d?.receta_plan?.recetas?.nombre||'—');
+      const planNombre = esMix ? (d?.paquetes_mix?.planes?.nombre||'—') : (d?.receta_plan?.planes?.nombre||'—');
+      const kitsLabel = esMix
+        ? `${tipoLabel[d.tipo_paquete]} (${d.paquetes_mix?.kits_pollo||''}P+${d.paquetes_mix?.kits_res||''}R)`
+        : (tipoLabel[d?.tipo_paquete]||d?.tipo_paquete||'—');
+      return `<tr>
+        <td><strong>${p.clientes?.nombre||'—'}</strong></td>
+        <td>${recetaNombre}</td>
+        <td style="font-size:12px">${planNombre}</td>
+        <td><span class="badge badge-gray" style="font-size:11px">${kitsLabel}</span></td>
+        <td><strong style="color:var(--green-dark);font-size:14px">$${Number(p.total_pesos||0).toLocaleString('es-MX')}</strong></td>
+        <td><span class="badge ${eClass[p.estado]||'badge-gray'}">${eLabel[p.estado]||p.estado}</span></td>
+        <td>
+          <select onchange="cambiarEstado(${p.id},this.value)" style="font-size:11px;padding:3px 6px;border-radius:6px;border:1px solid var(--gray-300)">
+            ${['recibido','confirmado','producido','entregado'].map(e=>`<option${p.estado===e?' selected':''}>${e}</option>`).join('')}
+          </select>
+        </td>
+      </tr>`;
+    }).join('') + (pedidos.length>0 ? `<tr style="background:var(--gray-100)">
+      <td colspan="4" style="padding:10px 14px;font-size:12px;color:var(--gray-500)">${pedidos.length} pedidos · ${totalKits} kits aprox.</td>
+      <td style="padding:10px 14px"><strong style="color:var(--green-dark)">$${totalPesos.toLocaleString('es-MX')}</strong></td>
+      <td colspan="2"></td>
+    </tr>` : '');
+}
+
+async function cambiarEstado(id, estado) {
+  await sb(`pedidos?id=eq.${id}`, { method:'PATCH', body:{ estado }, prefer:'return=minimal' });
+  await loadPedidosTabla();
+}
+
+// ══ CLIENTES ═════════════════════════════════════════════════
+async function loadClientes() {
+  const clientes = await sb('clientes?select=*,pedidos(id,total_pesos)&activo=eq.true&order=nombre');
+  document.getElementById('lista-clientes').innerHTML = clientes.map(c => {
+    const total = c.pedidos?.reduce((s,p)=>s+Number(p.total_pesos||0),0)||0;
+    return `<div class="cliente-card">
+      <div class="cliente-avatar">${c.nombre[0].toUpperCase()}</div>
+      <div class="cliente-info">
+        <div class="cliente-nombre">${c.nombre}</div>
+        <div class="cliente-meta">${c.colonia||'—'} · ${c.telefono||'sin tel'}</div>
+      </div>
+      <div class="cliente-stats">
+        <div class="cliente-total">$${total.toLocaleString('es-MX')}</div>
+        <div class="cliente-pedidos">${c.pedidos?.length||0} pedido${c.pedidos?.length!==1?'s':''}</div>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty-state"><p>Sin clientes registrados</p></div>';
+}
+
+// ══ RECETAS — SUB-TABS ═══════════════════════════════════════
+function showRecetasTab(tab) {
+  state.recetasTab = tab;
+  document.getElementById('rsub-consolidadas').style.display = tab==='consolidadas' ? 'block' : 'none';
+  document.getElementById('rsub-laboratorio').style.display  = tab==='laboratorio'  ? 'block' : 'none';
+  ['consolidadas','laboratorio'].forEach(t => {
+    const el = document.getElementById('rtab-'+t);
+    if(!el) return;
+    if(t===tab) { el.style.background='var(--white)'; el.style.color='var(--gray-900)'; el.style.boxShadow='0 1px 3px rgba(0,0,0,0.08)'; }
+    else        { el.style.background='transparent';  el.style.color='var(--gray-500)'; el.style.boxShadow='none'; }
+  });
+  const btnAction = document.getElementById('btn-recetas-action');
+  if(btnAction) btnAction.style.display = tab==='laboratorio' ? '' : 'none';
+  if(tab==='consolidadas') loadRecetasPage();
+  if(tab==='laboratorio')  loadBorradores();
+}
+
+function recetasActionClick() { openNuevoBorrador(); }
+
+// ══ RECETAS CONSOLIDADAS ══════════════════════════════════════
+async function loadRecetasPage() {
+  const recetas = await sb('recetas?select=*,receta_plan(proteina_g,arroz_g,verdura_g,precio_kit,planes(nombre))&order=id');
+  state.recetasList = recetas;
+  document.getElementById('lista-recetas').innerHTML = recetas.map((r,i) => `
+    <div class="receta-card${i===0?' selected':''}" onclick="selectReceta(${r.id})" id="rc-${r.id}">
+      <div class="receta-nombre">${r.nombre}</div>
+      <div class="receta-meta">
+        <span>${r.proteina_tipo}</span>
+        <span>${r.activa ? '● Activa' : '○ Inactiva'}</span>
+      </div>
+    </div>`).join('');
+  if(recetas.length) selectReceta(recetas[0].id);
+}
+
+function calcKcal(prot_g, arroz_g, verd_g, fat_g=8) {
+  // Proteína 4kcal/g · Arroz cocido 1.3kcal/g · Verdura 0.35kcal/g · Grasa marinado 9kcal/g
+  return Math.round(prot_g * 4 + arroz_g * 1.3 + verd_g * 0.35 + fat_g * 9);
+}
+
+function calcMacros(prot_g, arroz_g, verd_g) {
+  // Carbohidratos: arroz cocido ~28g carb/100g, verdura ~5g carb/100g
+  const carbs = Math.round(arroz_g * 0.28 + verd_g * 0.05);
+  const fat   = 8; // marinado promedio
+  const kcal  = calcKcal(prot_g, arroz_g, verd_g, fat);
+  return { prot: Math.round(prot_g * 0.85), carbs, fat, kcal };
+  // 0.85 porque no toda la proteína bruta es proteína neta
+}
+
+function selectReceta(id) {
+  document.querySelectorAll('.receta-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('rc-'+id)?.classList.add('selected');
+  const r = state.recetasList?.find(x=>x.id===id);
+  if(!r) return;
+  document.getElementById('receta-detalle-titulo').textContent = r.nombre;
+  const maxProt = Math.max(...r.receta_plan.map(p=>Number(p.proteina_g)));
+  document.getElementById('receta-detalle-body').innerHTML = `
+    <table class="macros-table">
+      <thead>
+        <tr>
+          <th>Plan</th>
+          <th>Proteína</th>
+          <th>Arroz</th>
+          <th>Verdura</th>
+          <th>Kcal est.</th>
+          <th>Precio</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${r.receta_plan.map(p=>{
+          const prot=Number(p.proteina_g), arroz=Number(p.arroz_g), verd=Number(p.verdura_g);
+          const kcal=calcKcal(prot,arroz,verd);
+          return `<tr>
+            <td><strong>${p.planes?.nombre||'—'}</strong></td>
+            <td>
+              <div class="macro-bar-wrap">
+                <div class="macro-bar"><div class="macro-bar-fill bar-prot" style="width:${Math.round(prot/maxProt*100)}%"></div></div>
+                <span style="font-size:12px;white-space:nowrap">${prot}g</span>
+              </div>
+            </td>
+            <td>
+              <div class="macro-bar-wrap">
+                <div class="macro-bar"><div class="macro-bar-fill bar-carb" style="width:${Math.round(arroz/250*100)}%"></div></div>
+                <span style="font-size:12px;white-space:nowrap">${arroz}g</span>
+              </div>
+            </td>
+            <td>
+              <div class="macro-bar-wrap">
+                <div class="macro-bar"><div class="macro-bar-fill bar-verd" style="width:${Math.round(verd/150*100)}%"></div></div>
+                <span style="font-size:12px;white-space:nowrap">${verd}g</span>
+              </div>
+            </td>
+            <td><span style="font-size:13px;font-weight:500;color:var(--amber)">${kcal}</span></td>
+            <td><strong>$${p.precio_kit}</strong></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+    <div style="margin-top:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+      ${r.receta_plan.map(p=>{
+        const prot=Number(p.proteina_g), arroz=Number(p.arroz_g), verd=Number(p.verdura_g);
+        const kcal=calcKcal(prot,arroz,verd);
+        const totalG=prot+arroz+verd;
+        return `<div style="background:var(--gray-100);border-radius:8px;padding:10px 12px;font-size:12px">
+          <div style="font-weight:600;margin-bottom:6px;font-size:11px;color:var(--gray-500);text-transform:uppercase">${p.planes?.nombre||'—'}</div>
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--green-dark)">Prot</span><span>${prot}g · ${Math.round(prot/totalG*100)}%</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--amber)">Carbs</span><span>${arroz}g · ${Math.round(arroz/totalG*100)}%</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:#60a5fa">Verd</span><span>${verd}g · ${Math.round(verd/totalG*100)}%</span></div>
+            <div style="border-top:1px solid var(--gray-300);margin-top:4px;padding-top:4px;display:flex;justify-content:space-between;font-weight:600"><span>Total</span><span>${kcal} kcal</span></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="margin-top:12px;padding:10px 12px;background:var(--gray-100);border-radius:8px;font-size:11px;color:var(--gray-500)">
+      Kcal estimadas: proteína 4kcal/g · arroz cocido 1.3kcal/g · verduras 0.35kcal/g. Solo lectura.
+    </div>`;
+}
+
+// ══ LABORATORIO ═══════════════════════════════════════════════
+async function loadBorradores() {
+  const borradores = await sb('recetas_borrador?estado=eq.borrador&order=created_at.desc');
+  state.borradores = borradores;
+  if(!borradores.length) {
+    document.getElementById('lista-borradores').innerHTML = `
+      <div style="padding:12px 0;color:var(--gray-500);font-size:13px">
+        <div>Sin borradores aún.</div>
+        <div style="margin-top:4px">Crea tu primera receta experimental.</div>
+      </div>`;
+    return;
+  }
+  document.getElementById('lista-borradores').innerHTML = borradores.map(b => `
+    <div class="receta-card" onclick="selectBorrador(${b.id})" id="brc-${b.id}">
+      <div class="receta-nombre">${b.nombre}</div>
+      <div class="receta-meta">
+        <span>${b.proteina_tipo||'—'}</span>
+        ${b.usda_nombre ? `<span style="color:var(--green-dark)">● USDA</span>` : '<span style="color:var(--gray-400)">○ Sin USDA</span>'}
+      </div>
+    </div>`).join('');
+}
+
+function selectBorrador(id) {
+  document.querySelectorAll('.receta-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('brc-'+id)?.classList.add('selected');
+  const b = state.borradores?.find(x=>x.id===id);
+  if(!b) return;
+  state.borradorActivo = b;
+  document.getElementById('borrador-titulo').textContent = b.nombre;
+  document.getElementById('borrador-editor').innerHTML = borradorFormHTML(b);
+  if(b.usda_nombre) {
+    state.usdaSelected = {name:b.usda_nombre,kcal:b.usda_kcal,prot:b.usda_proteina_g,carb:b.usda_carb_g,fat:b.usda_grasa_g};
+    document.getElementById('usda-selected-display').innerHTML = usdaSelectedHTML(state.usdaSelected);
+  }
+}
+
+function openNuevoBorrador() {
+  document.querySelectorAll('.receta-card').forEach(c=>c.classList.remove('selected'));
+  state.borradorActivo = null;
+  state.usdaSelected = null;
+  document.getElementById('borrador-titulo').textContent = 'Nueva receta experimental';
+  document.getElementById('borrador-editor').innerHTML = borradorFormHTML(null);
+}
+
+function borradorFormHTML(b) {
+  return `
+    <div class="form-grid mb-16">
+      <div class="form-group">
+        <label>Nombre</label>
+        <input type="text" id="bd-nombre" placeholder="Ej: Salmón Mediterráneo" value="${b?.nombre||''}">
+      </div>
+      <div class="form-group">
+        <label>Proteína</label>
+        <select id="bd-proteina">
+          ${['pollo','res','salmon','atun','cerdo','otro'].map(t=>`<option${b?.proteina_tipo===t?' selected':''}>${t}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group full">
+        <label>Notas / ideas</label>
+        <textarea id="bd-notas" placeholder="Ingredientes tentativos, inspiración, ajustes...">${b?.notas||''}</textarea>
+      </div>
+    </div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:8px">Ingrediente principal — USDA</div>
+    <div class="search-row">
+      <input type="text" id="usda-query-lab" placeholder="chicken breast, salmon..." onkeydown="if(event.key==='Enter')buscarUSDALab()">
+      <button class="btn btn-primary" onclick="buscarUSDALab()">Buscar</button>
+    </div>
+    <div id="usda-results-lab"></div>
+    <div id="usda-selected-display"></div>
+    <div style="font-size:13px;font-weight:600;margin:14px 0 10px">Gramos por plan (editables)</div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px" id="lab-macros-table">
+      <thead><tr>
+        <th style="text-align:left;padding:5px 8px;color:var(--gray-500)">Plan</th>
+        <th style="padding:5px 6px;color:var(--gray-500)">Prot g</th>
+        <th style="padding:5px 6px;color:var(--gray-500)">Arroz g</th>
+        <th style="padding:5px 6px;color:var(--gray-500)">Verd g</th>
+        <th style="padding:5px 6px;color:var(--gray-500)">Precio</th>
+        <th style="padding:5px 6px;color:var(--amber)">Kcal</th>
+        <th style="padding:5px 6px;color:var(--gray-500)">Carbs</th>
+      </tr></thead>
+      <tbody>
+        ${[
+          ['cp','Control de peso',b?.cp_proteina_g||180,b?.cp_arroz_g||125,b?.cp_verdura_g||130,b?.cp_precio||0],
+          ['mant','Mantenimiento',b?.mant_proteina_g||225,b?.mant_arroz_g||157,b?.mant_verdura_g||130,b?.mant_precio||0],
+          ['am','Aumento de masa',b?.am_proteina_g||270,b?.am_arroz_g||190,b?.am_verdura_g||130,b?.am_precio||0]
+        ].map(([pfx,label,prot,arroz,verd,precio])=>{
+          const m=calcMacros(prot,arroz,verd);
+          return \`
+          <tr>
+            <td style="padding:4px 8px;font-weight:500;font-size:12px">\${label}</td>
+            <td style="padding:4px 3px"><input type="number" id="bd-\${pfx}-prot" value="\${prot}" oninput="recalcLabMacros()" style="width:60px;padding:4px 6px;font-size:12px;border:1px solid var(--gray-300);border-radius:6px"></td>
+            <td style="padding:4px 3px"><input type="number" id="bd-\${pfx}-arroz" value="\${arroz}" oninput="recalcLabMacros()" style="width:60px;padding:4px 6px;font-size:12px;border:1px solid var(--gray-300);border-radius:6px"></td>
+            <td style="padding:4px 3px"><input type="number" id="bd-\${pfx}-verd" value="\${verd}" oninput="recalcLabMacros()" style="width:60px;padding:4px 6px;font-size:12px;border:1px solid var(--gray-300);border-radius:6px"></td>
+            <td style="padding:4px 3px"><input type="number" id="bd-\${pfx}-precio" value="\${precio}" style="width:60px;padding:4px 6px;font-size:12px;border:1px solid var(--gray-300);border-radius:6px"></td>
+            <td id="bd-\${pfx}-kcal" style="padding:4px 8px;font-weight:600;color:var(--amber);font-size:13px">\${m.kcal}</td>
+            <td id="bd-\${pfx}-carbs" style="padding:4px 8px;font-size:12px;color:var(--gray-600)">\${m.carbs}g</td>
+          </tr>\`;
+        }).join('')}
+      </tbody>
+    </table>
+    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+      <button class="btn btn-secondary" onclick="guardarBorrador()">Guardar borrador</button>
+      ${b?`<button class="btn btn-primary" onclick="consolidarReceta(${b.id})">Pasar a Consolidadas →</button>`:''}
+      ${b?`<button class="btn" style="background:#FEF2F2;color:#991B1B;border:1px solid #FECACA;padding:8px 14px;border-radius:8px;font-size:13px;cursor:pointer" onclick="eliminarBorrador(${b.id})">Eliminar</button>`:''}
+    </div>`;
+}
+
+
+function recalcLabMacros() {
+  for(const pfx of ['cp','mant','am']) {
+    const prot  = Number(document.getElementById('bd-'+pfx+'-prot')?.value||0);
+    const arroz = Number(document.getElementById('bd-'+pfx+'-arroz')?.value||0);
+    const verd  = Number(document.getElementById('bd-'+pfx+'-verd')?.value||0);
+    const m = calcMacros(prot, arroz, verd);
+    const kcalEl  = document.getElementById('bd-'+pfx+'-kcal');
+    const carbsEl = document.getElementById('bd-'+pfx+'-carbs');
+    if(kcalEl)  kcalEl.textContent  = m.kcal;
+    if(carbsEl) carbsEl.textContent = m.carbs + 'g';
+  }
+}
+
+async function guardarBorrador() {
+  const nombre = document.getElementById('bd-nombre').value.trim();
+  if(!nombre) return alert('Escribe el nombre de la receta');
+  const u = state.usdaSelected;
+  const body = {
+    nombre,
+    proteina_tipo: document.getElementById('bd-proteina').value,
+    notas: document.getElementById('bd-notas')?.value.trim()||'',
+    usda_nombre:u?.name||null, usda_kcal:u?.kcal||null,
+    usda_proteina_g:u?.prot||null, usda_carb_g:u?.carb||null, usda_grasa_g:u?.fat||null,
+    cp_proteina_g:document.getElementById('bd-cp-prot').value,
+    cp_arroz_g:document.getElementById('bd-cp-arroz').value,
+    cp_verdura_g:document.getElementById('bd-cp-verd').value,
+    cp_precio:document.getElementById('bd-cp-precio').value,
+    mant_proteina_g:document.getElementById('bd-mant-prot').value,
+    mant_arroz_g:document.getElementById('bd-mant-arroz').value,
+    mant_verdura_g:document.getElementById('bd-mant-verd').value,
+    mant_precio:document.getElementById('bd-mant-precio').value,
+    am_proteina_g:document.getElementById('bd-am-prot').value,
+    am_arroz_g:document.getElementById('bd-am-arroz').value,
+    am_verdura_g:document.getElementById('bd-am-verd').value,
+    am_precio:document.getElementById('bd-am-precio').value,
+  };
+  if(state.borradorActivo) {
+    await sb(`recetas_borrador?id=eq.${state.borradorActivo.id}`,{method:'PATCH',body,prefer:'return=minimal'});
+  } else {
+    const [nuevo] = await sb('recetas_borrador',{method:'POST',body});
+    state.borradorActivo = nuevo;
+  }
+  await loadBorradores();
+  const btn = document.querySelector('#borrador-editor .btn-secondary');
+  if(btn){btn.textContent='✓ Guardado';btn.style.background='var(--green-light)';btn.style.color='var(--green-dark)';
+    setTimeout(()=>{btn.textContent='Guardar borrador';btn.style.background='';btn.style.color='';},1600);}
+}
+
+async function consolidarReceta(borradorId) {
+  const b = state.borradores?.find(x=>x.id===borradorId);
+  if(!b) return;
+  if(!confirm(`¿Pasar "${b.nombre}" a Recetas Consolidadas?`)) return;
+  const [receta] = await sb('recetas',{method:'POST',body:{nombre:b.nombre,proteina_tipo:b.proteina_tipo,activa:true}});
+  const planes = await sb('planes?select=id&order=id');
+  const pd=[
+    {prot:b.cp_proteina_g,  arroz:b.cp_arroz_g,   verd:b.cp_verdura_g,   precio:b.cp_precio},
+    {prot:b.mant_proteina_g,arroz:b.mant_arroz_g, verd:b.mant_verdura_g, precio:b.mant_precio},
+    {prot:b.am_proteina_g,  arroz:b.am_arroz_g,   verd:b.am_verdura_g,   precio:b.am_precio},
+  ];
+  for(let i=0;i<Math.min(planes.length,3);i++){
+    const [rp]=await sb('receta_plan',{method:'POST',body:{receta_id:receta.id,plan_id:planes[i].id,proteina_g:pd[i].prot,arroz_g:pd[i].arroz,verdura_g:pd[i].verd,precio_kit:pd[i].precio}});
+    for(const[tipo,pct]of[['individual',1],['paquete_3',3*0.95],['paquete_5',5*0.9]])
+      await sb('paquetes',{method:'POST',body:{receta_plan_id:rp.id,tipo_paquete:tipo,precio_venta:Math.round(pd[i].precio*pct)}});
+  }
+  await sb(`recetas_borrador?id=eq.${borradorId}`,{method:'PATCH',body:{estado:'consolidada'},prefer:'return=minimal'});
+  state.recetas=[];
+  state.borradorActivo=null;
+  await loadBorradores();
+  document.getElementById('borrador-editor').innerHTML='<div style="padding:16px;color:var(--green-dark);font-size:13px">✓ Receta consolidada. Ya aparece en la pestaña Consolidadas.</div>';
+  document.getElementById('borrador-titulo').textContent='Laboratorio';
+}
+
+async function eliminarBorrador(id) {
+  if(!confirm('¿Eliminar este borrador?')) return;
+  await sb(`recetas_borrador?id=eq.${id}`,{method:'DELETE',prefer:'return=minimal'});
+  state.borradorActivo=null;
+  document.getElementById('borrador-editor').innerHTML='<div class="empty-state"><div class="text-muted">Selecciona o crea un borrador</div></div>';
+  document.getElementById('borrador-titulo').textContent='Laboratorio';
+  await loadBorradores();
+}
+
+// ══ USDA ═════════════════════════════════════════════════════
+function usdaSelectedHTML(item){
+  return `<div class="usda-selected" style="margin:8px 0">
+    <div class="usda-selected-name">${item.name}</div>
+    <div class="usda-macros">
+      <span>Prot: <strong>${item.prot}g</strong></span>
+      <span>Carbs: <strong>${item.carb}g</strong></span>
+      <span>Grasa: <strong>${item.fat}g</strong></span>
+      <span>${item.kcal} kcal / 100g</span>
+    </div>
+  </div>`;
+}
+
+async function buscarUSDALab(){
+  const q=document.getElementById('usda-query-lab').value.trim();
+  if(!q)return;
+  const c=document.getElementById('usda-results-lab');
+  c.innerHTML='<div class="text-muted" style="padding:8px">Buscando...</div>';
+  try{
+    const r=await fetch(`https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(q)}&pageSize=6&api_key=${USDA_KEY}`);
+    const data=await r.json();
+    if(!data.foods?.length){c.innerHTML='<div class="text-muted" style="padding:8px">Sin resultados</div>';return;}
+    const get=(f,name)=>f.foodNutrients?.find(n=>n.nutrientName===name)?.value||0;
+    c.innerHTML=`<div class="usda-results">${data.foods.map(f=>{
+      const item={name:f.description,kcal:get(f,'Energy'),prot:get(f,'Protein'),carb:get(f,'Carbohydrate, by difference'),fat:get(f,'Total lipid (fat)')};
+      return `<div class="usda-item" onclick='selectUSDALab(${JSON.stringify(item).replace(/'/g,"&#39;")})'>
+        <div class="usda-item-name">${f.description}</div>
+        <div class="usda-item-cal">por 100g: ${item.kcal} kcal · ${item.prot}g prot · ${item.carb}g carbs</div>
+      </div>`;
+    }).join('')}</div>`;
+  }catch(e){c.innerHTML='<div class="text-muted" style="padding:8px">Error al buscar</div>';}
+}
+
+function selectUSDALab(item){
+  state.usdaSelected=item;
+  document.getElementById('usda-results-lab').innerHTML='';
+  document.getElementById('usda-selected-display').innerHTML=usdaSelectedHTML(item);
+}
+
+async function buscarUSDA(){
+  const q=document.getElementById('usda-query').value.trim();
+  if(!q)return;
+  const c=document.getElementById('usda-results-container');
+  c.innerHTML='<div class="text-muted" style="padding:10px">Buscando...</div>';
+  try{
+    const r=await fetch(`https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(q)}&pageSize=6&api_key=${USDA_KEY}`);
+    const data=await r.json();
+    if(!data.foods?.length){c.innerHTML='<div class="text-muted" style="padding:10px">Sin resultados</div>';return;}
+    const get=(f,name)=>f.foodNutrients?.find(n=>n.nutrientName===name)?.value||0;
+    c.innerHTML=`<div class="usda-results">${data.foods.map(f=>`
+      <div class="usda-item" onclick='selectUSDA(${JSON.stringify({name:f.description,kcal:get(f,"Energy"),prot:get(f,"Protein"),carb:get(f,"Carbohydrate, by difference"),fat:get(f,"Total lipid (fat)")}).replace(/'/g,"&#39;")})'>
+        <div class="usda-item-name">${f.description}</div>
+        <div class="usda-item-cal">por 100g: ${get(f,'Energy')} kcal · ${get(f,'Protein')}g prot</div>
+      </div>`).join('')}</div>`;
+  }catch(e){c.innerHTML='<div class="text-muted" style="padding:10px">Error al buscar</div>';}
+}
+
+function selectUSDA(item){
+  state.usdaSelected=item;
+  document.getElementById('usda-results-container').innerHTML='';
+  document.getElementById('usda-selected-display').innerHTML=usdaSelectedHTML(item);
+}
+
+async function guardarReceta(){
+  const nombre=document.getElementById('nr-nombre').value.trim();
+  const proteina_tipo=document.getElementById('nr-proteina').value;
+  if(!nombre)return alert('Escribe el nombre de la receta');
+  const[receta]=await sb('recetas',{method:'POST',body:{nombre,proteina_tipo,activa:true}});
+  const planes=await sb('planes?select=id&order=id');
+  const precios=[document.getElementById('nr-precio-cp').value||0,document.getElementById('nr-precio-mant').value||0,document.getElementById('nr-precio-am').value||0];
+  const gp=[{proteina_g:180,arroz_g:125,verdura_g:130},{proteina_g:225,arroz_g:157,verdura_g:130},{proteina_g:270,arroz_g:190,verdura_g:130}];
+  for(let i=0;i<planes.length&&i<3;i++){
+    const[rp]=await sb('receta_plan',{method:'POST',body:{receta_id:receta.id,plan_id:planes[i].id,...gp[i],precio_kit:precios[i]}});
+    for(const[tipo,pct]of[['individual',1],['paquete_3',3*0.95],['paquete_5',5*0.9]])
+      await sb('paquetes',{method:'POST',body:{receta_plan_id:rp.id,tipo_paquete:tipo,precio_venta:Math.round(precios[i]*pct)}});
+  }
+  closeModal('modal-receta');
+  document.getElementById('nr-nombre').value='';
+  state.recetas=[];
+  await loadRecetasPage();
+}
+
+
+
+// ══ FINANZAS ═════════════════════════════════════════════════
+// Costos reales de Supabase (costos_ingredientes + empaque)
+// Estos los usamos para estimar el costo por kit
+const COSTO_KIT_EST = {
+  // Basado en tus datos: pollo $195/kg×0.2kg + arroz $42/kg×0.15kg + verd $45/kg×0.13kg + empaque + marinado
+  pollo_individual: 75,  // ~proteina 180g + arroz 125g + verd 130g + empaque 30
+  res_individual:   95,  // res cuesta más
+  mix_individual:   85,
+  factor_3:  2.7,  // paquete 3 tiene pequeño descuento en empaque
+  factor_5:  4.5,
+};
+
+async function loadFinanzas() {
+  try {
+    const [pedidosRaw, costosIng, empaque, recetaPlanes] = await Promise.all([
+      sb('pedidos?select=*,detalle_pedido(tipo_paquete,precio_unitario,receta_plan(receta_id,proteina_g,arroz_g,verdura_g,recetas(nombre,proteina_tipo)),paquetes_mix(tipo_mix,kits_pollo,kits_res))&estado=neq.cancelled&order=semana.desc'),
+      sb('costos_ingredientes?select=nombre,precio_kg_actual,tipo,unidad'),
+      sb('empaque?select=tipo_paquete,total'),
+      sb('receta_plan?select=proteina_g,arroz_g,verdura_g,precio_kit,recetas(nombre,proteina_tipo),planes(nombre)&order=receta_id,plan_id')
+    ]);
+
+    // Build cost lookup
+    const costos = {};
+    costosIng.forEach(c => costos[c.nombre] = Number(c.precio_kg_actual));
+    const empaqueCost = {};
+    empaque.forEach(e => empaqueCost[e.tipo_paquete] = Number(e.total));
+
+    // Cost estimator per kit using real prices
+    function estimarCostoKit(proteina_tipo, prot_g, arroz_g, verd_g) {
+      const precioProtKg = proteina_tipo === 'res' ? (costos['Res pulpa blanca']||259) : (costos['Pollo']||195);
+      const precioArroz  = costos['Arroz cocido'] || 42;
+      const precioVerd   = costos['Calabacin'] || 40; // promedio verduras
+      const marinado     = proteina_tipo === 'res' ? 12 : 8; // estimado marinado
+      const merma        = 1.12;
+      return (
+        (prot_g/1000)  * precioProtKg * merma +
+        (arroz_g/1000) * precioArroz  * merma +
+        (verd_g/1000)  * precioVerd   * merma +
+        marinado
+      );
+    }
+
+    function empaquePorTipo(tipo) {
+      if(tipo === 'individual') return empaqueCost['individual'] || 30;
+      if(tipo === 'paquete_3' || tipo === 'mix_3') return empaqueCost['paquete_3'] || 46;
+      if(tipo === 'paquete_5' || tipo === 'mix_5') return empaqueCost['paquete_5'] || 67;
+      return 30;
+    }
+
+    function numKits(tipo) {
+      if(tipo?.includes('5')) return 5;
+      if(tipo?.includes('3')) return 3;
+      return 1;
+    }
+
+    // Aggregate by week
+    const byWeek = {};
+    let totalIngresos = 0, totalCosto = 0, totalPedidos = 0;
+
+    pedidosRaw.forEach(p => {
+      const week = p.semana;
+      if(!byWeek[week]) byWeek[week] = { semana:week, pedidos:0, ingresos:0, costo:0 };
+      const ingreso = Number(p.total_pesos||0);
+      byWeek[week].ingresos += ingreso;
+      byWeek[week].pedidos++;
+      totalIngresos += ingreso;
+      totalPedidos++;
+
+      const d = p.detalle_pedido?.[0];
+      if(d) {
+        const tipo = d.tipo_paquete;
+        const kits = numKits(tipo);
+        const esMix = tipo?.startsWith('mix');
+        let costoKit = 0;
+        if(esMix) {
+          const kp = d.paquetes_mix?.kits_pollo || 2;
+          const kr = d.paquetes_mix?.kits_res || 1;
+          const rp = d.receta_plan;
+          costoKit = (kp * estimarCostoKit('pollo', rp?.proteina_g||200, rp?.arroz_g||140, rp?.verdura_g||130)) +
+                     (kr * estimarCostoKit('res',   rp?.proteina_g||200, rp?.arroz_g||140, rp?.verdura_g||100));
+        } else {
+          const rp = d.receta_plan;
+          const tipo_prot = rp?.recetas?.proteina_tipo || 'pollo';
+          costoKit = kits * estimarCostoKit(tipo_prot, rp?.proteina_g||200, rp?.arroz_g||140, rp?.verdura_g||130);
+        }
+        const costoEmp = empaquePorTipo(tipo);
+        const costoTotal = costoKit + costoEmp;
+        byWeek[week].costo += costoTotal;
+        totalCosto += costoTotal;
+      }
+    });
+
+    const margenTotal = totalIngresos - totalCosto;
+    const margenPct   = totalIngresos > 0 ? Math.round(margenTotal / totalIngresos * 100) : 0;
+    const ticket      = totalPedidos > 0 ? Math.round(totalIngresos / totalPedidos) : 0;
+    const semanas     = Object.keys(byWeek).length;
+
+    // KPIs
+    document.getElementById('fin-ingresos-total').textContent = '$' + totalIngresos.toLocaleString('es-MX');
+    document.getElementById('fin-semanas-label').textContent   = semanas + ' semana' + (semanas!==1?'s':'');
+    document.getElementById('fin-costo-total').textContent     = '$' + Math.round(totalCosto).toLocaleString('es-MX');
+    document.getElementById('fin-margen-pct').textContent      = margenPct + '%';
+    document.getElementById('fin-margen-pesos').textContent    = '$' + Math.round(margenTotal).toLocaleString('es-MX') + ' MXN';
+    document.getElementById('fin-ticket').textContent          = '$' + ticket.toLocaleString('es-MX');
+
+    // Tabla semanal
+    const semanasSorted = Object.values(byWeek).sort((a,b)=>b.semana.localeCompare(a.semana));
+    document.getElementById('fin-semanas-body').innerHTML = semanasSorted.map(w => {
+      const mg = w.ingresos - w.costo;
+      const mp = w.ingresos > 0 ? Math.round(mg/w.ingresos*100) : 0;
+      const mpColor = mp >= 40 ? 'var(--green-dark)' : mp >= 25 ? 'var(--amber)' : 'var(--red)';
+      return `<tr>
+        <td style="font-size:12px">${formatDate(w.semana)}</td>
+        <td style="text-align:center">${w.pedidos}</td>
+        <td><strong>$${Math.round(w.ingresos).toLocaleString('es-MX')}</strong></td>
+        <td style="color:var(--gray-500)">$${Math.round(w.costo).toLocaleString('es-MX')}</td>
+        <td><span style="font-weight:600;color:${mpColor}">${mp}%</span> <span style="font-size:11px;color:var(--gray-500)">($${Math.round(mg).toLocaleString('es-MX')})</span></td>
+      </tr>`;
+    }).join('');
+
+    // Costos por ingrediente card
+    const costoIngHtml = costosIng.filter(c=>c.tipo==='kit').map(c=>`
+      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--gray-100);font-size:13px">
+        <span>${c.nombre}</span>
+        <span style="font-weight:500">$${c.precio_kg_actual}/${c.unidad}</span>
+      </div>`).join('') + `
+      <div style="margin-top:12px;padding:10px;background:var(--gray-100);border-radius:8px;font-size:12px;color:var(--gray-500)">
+        Costo estimado por kit individual pollo: <strong>$${Math.round(estimarCostoKit('pollo',200,140,130)+30)}</strong><br>
+        Costo estimado por kit individual res: <strong>$${Math.round(estimarCostoKit('res',200,140,100)+30)}</strong>
+      </div>`;
+    document.getElementById('fin-costos-body').innerHTML = costoIngHtml;
+
+    // Margenes por receta/plan
+    document.getElementById('fin-margenes-body').innerHTML = recetaPlanes.map(rp => {
+      const tipo_prot = rp.recetas?.proteina_tipo || 'pollo';
+      const costoIngr = estimarCostoKit(tipo_prot, rp.proteina_g, rp.arroz_g, rp.verdura_g);
+      const empq      = empaqueCost['individual'] || 30;
+      const costoTot  = costoIngr + empq;
+      const precio    = Number(rp.precio_kit);
+      const mg        = precio - costoTot;
+      const mp        = precio > 0 ? Math.round(mg/precio*100) : 0;
+      const mpColor   = mp >= 40 ? 'var(--green-dark)' : mp >= 25 ? 'var(--amber)' : 'var(--red)';
+      return `<tr>
+        <td><strong>${rp.recetas?.nombre||'—'}</strong></td>
+        <td style="font-size:12px">${rp.planes?.nombre||'—'}</td>
+        <td>$${precio}</td>
+        <td style="color:var(--gray-500)">$${Math.round(costoIngr)}</td>
+        <td style="color:var(--gray-500)">$${empq}</td>
+        <td style="color:var(--gray-500)">$${Math.round(costoTot)}</td>
+        <td style="font-weight:600;color:${mpColor}">$${Math.round(mg)}</td>
+        <td><span class="badge ${mp>=40?'badge-green':mp>=25?'badge-amber':'badge-red'}">${mp}%</span></td>
+      </tr>`;
+    }).join('');
+
+  } catch(e) {
+    console.error('Finanzas error:', e);
+  }
+}
+
+// ══ ROADMAP ══════════════════════════════════════════════════
+async function loadRoadmap() {
+  const tasks = await sb(`roadmap_tasks?area=eq.${state.roadmapArea}&order=created_at.desc`);
+  ['por_hacer','en_progreso','listo'].forEach(col => {
+    const filtered = tasks.filter(t=>t.estado===col);
+    document.getElementById('cnt-'+col).textContent = filtered.length;
+    document.getElementById('col-'+col).innerHTML = filtered.map(t => taskCard(t)).join('') || '';
+  });
+}
+
+function taskCard(t) {
+  const prioColor = {alta:'var(--red)',media:'var(--amber)',baja:'var(--gray-300)'};
+  const estados = ['por_hacer','en_progreso','listo'];
+  const idx = estados.indexOf(t.estado);
+  return `<div class="task-card">
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+      <div style="width:8px;height:8px;border-radius:50%;background:${prioColor[t.prioridad]||'var(--gray-300)'}"></div>
+      <div class="task-title" style="margin:0">${t.titulo}</div>
+    </div>
+    ${t.descripcion?`<div class="task-desc">${t.descripcion}</div>`:''}
+    ${t.fecha_limite?`<div class="text-muted" style="margin-bottom:6px">Fecha: ${formatDate(t.fecha_limite)}</div>`:''}
+    <div class="task-footer">
+      <div class="task-actions">
+        ${idx>0?`<button class="task-btn" onclick="moverTask(${t.id},'${estados[idx-1]}')" title="Mover atrás">←</button>`:''}
+        ${idx<2?`<button class="task-btn" onclick="moverTask(${t.id},'${estados[idx+1]}')" title="Mover adelante">→</button>`:''}
+        <button class="task-btn del" onclick="eliminarTask(${t.id})" title="Eliminar">✕</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function moverTask(id, nuevoEstado) {
+  await sb(`roadmap_tasks?id=eq.${id}`, { method:'PATCH', body:{ estado:nuevoEstado }, prefer:'return=minimal' });
+  await loadRoadmap();
+}
+
+async function eliminarTask(id) {
+  if(!confirm('¿Eliminar esta tarea?')) return;
+  await sb(`roadmap_tasks?id=eq.${id}`, { method:'DELETE', prefer:'return=minimal' });
+  await loadRoadmap();
+}
+
+function openTaskModal(estado) {
+  state.pendingTaskEstado = estado;
+  document.getElementById('task-titulo').value='';
+  document.getElementById('task-desc').value='';
+  document.getElementById('task-prioridad').value='media';
+  document.getElementById('task-fecha').value='';
+  openModal('modal-task');
+}
+
+async function guardarTask() {
+  const titulo = document.getElementById('task-titulo').value.trim();
+  if(!titulo) return alert('Escribe el título de la tarea');
+  await sb('roadmap_tasks', { method:'POST', body:{
+    area: state.roadmapArea,
+    titulo,
+    descripcion: document.getElementById('task-desc').value.trim(),
+    estado: state.pendingTaskEstado,
+    prioridad: document.getElementById('task-prioridad').value,
+    fecha_limite: document.getElementById('task-fecha').value || null
+  }});
+  closeModal('modal-task');
+  await loadRoadmap();
+}
+
+function switchArea(area, el) {
+  state.roadmapArea = area;
+  document.querySelectorAll('.area-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  loadRoadmap();
+}
+
+// ══ UTILS ════════════════════════════════════════════════════
+function estadoBadge(e) {
+  const m={recibido:'badge-gray',confirmado:'badge-blue',producido:'badge-amber',entregado:'badge-green'};
+  const l={recibido:'Recibido',confirmado:'Confirmado',producido:'Producido',entregado:'Entregado'};
+  return `<span class="badge ${m[e]||'badge-gray'}">${l[e]||e}</span>`;
+}
+function formatDate(d) {
+  if(!d) return '—';
+  return new Date(d+'T12:00:00').toLocaleDateString('es-MX',{day:'numeric',month:'short',year:'numeric'});
+}
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function toggleForm() {
+  const b = document.getElementById('form-pedido-body');
+  b.style.display = b.style.display==='none'?'block':'none';
+}
+function scrollToForm() { document.getElementById('form-pedido-card').scrollIntoView({behavior:'smooth'}); }
+
+// Click fuera del modal lo cierra
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); }));
+
+
+// ══ LOGIN ════════════════════════════════════════════════════
+const APP_PASSWORD = 'os';
+
+function checkLogin() {
+  const input = document.getElementById('login-password').value;
+  if(input === APP_PASSWORD) {
+    document.getElementById('login-overlay').style.display = 'none';
+    localStorage.setItem('ep_auth', btoa(APP_PASSWORD));
+    loadInicio();
+  } else {
+    const err = document.getElementById('login-error');
+    err.style.display = 'block';
+    err.textContent = 'Contraseña incorrecta';
+    document.getElementById('login-password').value = '';
+    document.getElementById('login-password').focus();
+    setTimeout(() => err.style.display = 'none', 2500);
+  }
+}
+
+function initAuth() {
+  const stored = localStorage.getItem('ep_auth');
+  if(stored && atob(stored) === APP_PASSWORD) {
+    document.getElementById('login-overlay').style.display = 'none';
+    loadInicio();
+  } else {
+    document.getElementById('login-password').focus();
+  }
+}
+
+// ══ INIT ═════════════════════════════════════════════════════
+initAuth();
+</script>
+</body>
+</html>
